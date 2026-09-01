@@ -1,13 +1,13 @@
 {
-  "name": "Asha Bangles Wholesale",
-  "short_name": "Asha Bangles",
-  "description": "Offline wholesale manager for Asha Bangles Wholesale — products, billing, purchases, udhar ledger and reports.",
+  "name": "Kavitha Telecom",
+  "short_name": "Kavitha Telecom",
+  "description": "Offline shop manager for Kavitha Telecom — products, billing, purchases, udhar ledger and reports.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#F5F3FB",
-  "theme_color": "#5B21B6",
+  "background_color": "#0a0a0a",
+  "theme_color": "#F97316",
   "icons": [
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },

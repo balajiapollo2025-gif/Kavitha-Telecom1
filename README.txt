@@ -1,4 +1,4 @@
-Asha Bangles Wholesale — PWA App
+Kavitha Telecom — PWA App
 =====================================================
 
 WHAT'S IN THIS ZIP
@@ -65,44 +65,53 @@ AFTER INSTALLING
 
 SHOP DETAILS ALREADY FILLED IN
 ---------------------------------
-Shop Name : ASHA BANGLES STORES
-Address   : #17-407, Subedar Street, CHITTOOR - 517 001, (A.P.)
+Shop Name : KAVITHA TELECOM
+Address   : (not set — add it from Settings inside the app)
 Phone     : (not set — add it from Settings inside the app)
-Logo      : Already set to the Asha Bangles Stores logo
+Logo      : Already set to the Kavitha Telecom logo (the fire "K" emblem
+            with mobile, cases, earbuds, cable and power bank icons)
 You can change any of these anytime from Settings inside the app.
 
 WHAT'S NEW IN THIS VERSION
 ------------------------------
-- App renamed from "MobiStock" to "Asha Bangles Wholesale" everywhere in
-  the app (title bar, home screen name, install prompts, backups).
-- Shop logo and address updated to Asha Bangles Stores.
-- Home screen / desktop app icon now uses your logo (see note below —
-  you must reinstall for the new icon to show up).
-- Bluetooth thermal (POS) receipt printing now prints your shop logo
-  at the top of every receipt, above the shop name — works with plain
+- App renamed to "Kavitha Telecom" everywhere in the app (title bar,
+  home screen name, install prompts, backups).
+- Shop logo replaced with your Kavitha Telecom logo — used in the app
+  header, the "Install App" prompts, invoices/receipts, and the Ad
+  Catalog page.
+- Home screen / desktop app icon now uses your new Kavitha Telecom
+  logo (see note below — you must reinstall for the new icon to show
+  up if you had an older version installed).
+- Default Ad Catalog sample cards updated to mobile-shop categories
+  (Phone Covers, Earbuds, USB Cables, Power Banks) to match your
+  business — edit or replace these anytime from the Ad Catalog screen.
+- Bluetooth thermal (POS) receipt printing prints your shop logo at
+  the top of every receipt, above the shop name — works with plain
   ESC/POS thermal printers (58mm/80mm). No extra setup needed; it uses
   whatever logo is set in Settings.
-- The "Print" (system dialog) page now also shows your shop logo,
-  matching the Share-PDF invoice layout.
-- New "Purchases" section (bottom nav) — record stock coming in
-  from suppliers. Adding a purchase automatically increases the
-  stock of the matching product (or creates a new product if it's
-  not in your list yet), and tracks how much you've paid / still
-  owe each supplier.
-- Reports screen now also shows a Purchases Overview (total
-  purchases, amount paid, amount due) with a downloadable
-  Purchase Report PDF, alongside the existing Sales Report.
+- Purchases section (bottom nav) — record stock coming in from
+  suppliers. Adding a purchase automatically increases the stock of
+  the matching product (or creates a new product if it's not in your
+  list yet), and tracks how much you've paid / still owe each supplier.
+- Reports screen also shows a Purchases Overview (total purchases,
+  amount paid, amount due) with a downloadable Purchase Report PDF,
+  alongside the existing Sales Report.
 
 IMPORTANT — About the app icon on your phone/desktop
 ------------------------------------------------------
-If you already installed the old MobiStock app icon on your phone or
-computer, Android/Chrome/Windows caches that icon at install time —
-it will NOT automatically refresh to the new logo just by updating
+If you already installed an older app icon on your phone or computer,
+Android/Chrome/Windows caches that icon at install time — it will NOT
+automatically refresh to the new Kavitha Telecom logo just by updating
 the files on the server. To see the new logo as your app icon:
   1. Uninstall/remove the old app icon (long-press it > Uninstall,
      or remove it from your desktop/Start menu).
   2. Open this app fresh in Chrome and use "Install" again from
      Settings, or the browser's "Add to Home Screen" / "Install app"
      option.
-The new icon (from your Asha Bangles logo) will then appear correctly.
+The new icon (your Kavitha Telecom fire-K logo) will then appear
+correctly.
 
+STILL TO DO
+------------------
+- Add your shop's phone number, address and GST (if any) from
+  Settings inside the app — these currently show blank on invoices.
