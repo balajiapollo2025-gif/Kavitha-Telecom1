@@ -2672,6 +2672,7 @@ function renderAdCatalog(){
       <span class="tlabel">Only MRP</span></div>
     <div class="grp"><button class="tbtn alt" onclick="oc_openSettings()">⚙️ Order Setup</button></div>
     <div class="grp"><button class="tbtn green" onclick="oc_generateCustomerPage()">📥 Customer Order Page Download</button></div>
+    <div class="grp"><button class="tbtn alt" onclick="oc_manualSync()">🔄 ఇప్పుడు Sync చేయండి</button></div>
   </div>
   <div id="dashboardActions" style="display:none; gap:10px;">
     <div class="grp"><button class="tbtn gold" onclick="oc_loadOrders()">🔄 Refresh</button></div>
@@ -2827,6 +2828,22 @@ function oc_syncCatalogToBackend(){
       toast('⚠️ Sync error: '+(e && e.message ? e.message : e));
     }
   }, 800);
+}
+async function oc_manualSync(){
+  if(!oc_CONFIG.scriptUrl){
+    alert('⚠️ ముందు ⚙️ Order Setup లో Google Sheet Backend URL పెట్టండి!');
+    return;
+  }
+  try{
+    const data = oc_collectData();
+    alert('🔄 Sync మొదలైంది... products: '+data.products.length+'\\nURL: '+oc_CONFIG.scriptUrl);
+    const res = await fetch(oc_CONFIG.scriptUrl + '?action=saveCatalog', { method:'POST', body: JSON.stringify(data) });
+    let bodyTxt = '';
+    try{ bodyTxt = await res.text(); }catch(e2){ bodyTxt = '(response చదవలేకపోయాము)'; }
+    alert('సర్వర్ జవాబు:\\nStatus: '+res.status+' '+res.statusText+'\\nBody: '+bodyTxt.slice(0,300));
+  }catch(e){
+    alert('❌ Sync FAILED (నెట్‌వర్క్/CORS ఎర్రర్):\\n'+(e && e.message ? e.message : e));
+  }
 }
 
 
