@@ -75,6 +75,24 @@ body{
 .sc3{background:linear-gradient(135deg,#22D3EE,#06B6D4);}
 .sc4{background:linear-gradient(135deg,#34D399,#10B981);}
 
+.madscard{border-radius:16px; padding:16px; color:#fff; margin-bottom:14px; box-shadow:0 6px 18px rgba(0,0,0,0.12);}
+.madscard.m1{background:linear-gradient(135deg,#F59E0B,#EF4444);}
+.madscard.m2{background:linear-gradient(135deg,#7C3AED,#DB2777);}
+.madscard.m3{background:linear-gradient(135deg,#06B6D4,#3B82F6);}
+.madscard.m4{background:linear-gradient(135deg,#10B981,#059669);}
+.madscard.m5{background:linear-gradient(135deg,#EC4899,#8B5CF6);}
+.madscard .madstitle{font-size:15px; font-weight:800; display:flex; align-items:center; gap:8px; margin-bottom:2px;}
+.madscard .madssub{font-size:11.5px; opacity:0.9; margin-bottom:12px;}
+.madscard .madspreview{background:rgba(255,255,255,0.15); border:2px dashed rgba(255,255,255,0.5); border-radius:12px; min-height:120px; display:flex; align-items:center; justify-content:center; margin-bottom:12px; overflow:hidden; position:relative;}
+.madscard .madspreview img{width:100%; height:100%; object-fit:contain; max-height:220px;}
+.madscard .madsempty{opacity:0.85; font-size:12.5px; text-align:center; padding:14px;}
+.madscard .madsrow{display:flex; gap:8px;}
+.madscard .madsbtn{flex:1; border:none; border-radius:10px; padding:10px; font-weight:700; font-size:12.5px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;}
+.madscard .madsbtn.upload{background:rgba(255,255,255,0.25); color:#fff;}
+.madscard .madsbtn.download{background:#fff; color:#333;}
+.madscard .madsbtn.remove{background:rgba(0,0,0,0.2); color:#fff; flex:0 0 44px;}
+.madscard audio{width:100%; margin-bottom:12px;}
+
 .sectionTitle{font-size:14.5px; font-weight:800; color:var(--primary-dark); margin:18px 0 8px; display:flex; align-items:center; justify-content:space-between;}
 .sectionTitle a{font-size:12px; color:var(--accent); font-weight:700; cursor:pointer;}
 
@@ -389,6 +407,7 @@ body{
     <button class="navbtn" data-scr="customers" onclick="goto('customers')"><span class="ic">👥</span>Customers</button>
     <button class="navbtn" data-scr="reports" onclick="goto('reports')"><span class="ic">📊</span>Reports</button>
     <button class="navbtn" data-scr="adcatalog" onclick="goto('adcatalog')"><span class="ic">🛍️</span>Ad Catalog</button>
+    <button class="navbtn" data-scr="mads" onclick="goto('mads')"><span class="ic">📣</span>M-Ads</button>
   </div>
 </div>
 
@@ -464,7 +483,7 @@ function render(){
   document.getElementById('backBtn').style.display = history.length>1 ? 'flex':'none';
   document.getElementById('settingsBtn').style.display = (cur.screen==='reports') ? 'flex':'none';
   document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active', b.dataset.scr===cur.screen));
-  const titles={dashboard:['Kavitha Telecom','Shop Manager'],products:['Products','Manage your stock'],billing:['Billing','Invoices & bills'],customers:['Customers','Udhar & contacts'],reports:['Reports','Sales & stock'],settings:['Settings','Shop & printer'],newbill:['New Bill','Create invoice'],invoicedetail:['Invoice','Details'],customerdetail:['Customer','Ledger'],purchases:['Purchases','Stock-in & suppliers'],newpurchase:['New Purchase','Add incoming stock'],purchasedetail:['Purchase','Details'],adcatalog:['Ad Catalog','Order catalog & orders']};
+  const titles={dashboard:['Kavitha Telecom','Shop Manager'],products:['Products','Manage your stock'],billing:['Billing','Invoices & bills'],customers:['Customers','Udhar & contacts'],reports:['Reports','Sales & stock'],settings:['Settings','Shop & printer'],newbill:['New Bill','Create invoice'],invoicedetail:['Invoice','Details'],customerdetail:['Customer','Ledger'],purchases:['Purchases','Stock-in & suppliers'],newpurchase:['New Purchase','Add incoming stock'],purchasedetail:['Purchase','Details'],adcatalog:['Ad Catalog','Order catalog & orders'],mads:['M-Ads','Marketing brochures & ads']};
   const t=titles[cur.screen]||['Kavitha Telecom',''];
   document.getElementById('pageTitle').textContent=t[0];
   document.getElementById('pageSub').textContent=t[1];
@@ -482,6 +501,7 @@ function render(){
   else if(cur.screen==='newpurchase')c.innerHTML=renderNewPurchase();
   else if(cur.screen==='purchasedetail')c.innerHTML=renderPurchaseDetail(cur.param);
   else if(cur.screen==='adcatalog'){c.innerHTML=renderAdCatalog(); ocInitScreen();}
+  else if(cur.screen==='mads'){c.innerHTML=renderMads();}
   window.scrollTo(0,0);
 }
 
@@ -609,10 +629,101 @@ function renderDashboard(){
     <button class="qbtn" style="background:var(--primary)" onclick="openProductForm()"><span class="ic">📦</span>Add Product</button>
     <button class="qbtn" style="background:var(--teal)" onclick="openCustomerForm()"><span class="ic">👤</span>Add Customer</button>
   </div>
-  <button class="btn btn-block" style="background:linear-gradient(120deg,#7C3AED,#FF6B4A); color:#fff; margin-bottom:14px;" onclick="startAdFlow()">🎨 Create Colorful WhatsApp Ad</button>
   <div class="sectionTitle">Recent Invoices <a onclick="goto('billing')">See all</a></div>
   ${recent.length? recent.map(inv=>invoiceRowHTML(inv)).join('') : `<div class="empty"><div class="bigic">🧾</div>No invoices yet.<br>Tap "New Bill" to create your first one.</div>`}
   `;
+}
+
+/* ================= M-ADS (Marketing Ads / Brochures) ================= */
+const MADS_ITEMS=[
+  {key:'mads_board',    cls:'m1', icon:'💡', title:'Shop Lighting Board',  sub:'Your illuminated shop signboard photo', kind:'image'},
+  {key:'mads_brochure', cls:'m2', icon:'📄', title:'Shop Brochure',        sub:'Full brochure / pamphlet image',         kind:'image'},
+  {key:'mads_cardFront',cls:'m3', icon:'🪪', title:'Visiting Card (Front)',sub:'Front side of your business card',       kind:'image'},
+  {key:'mads_cardBack', cls:'m4', icon:'🪪', title:'Visiting Card (Back)', sub:'Back side of your business card',        kind:'image'},
+  {key:'mads_audio',    cls:'m5', icon:'🔊', title:'Ad Announcement Audio',sub:'Audio clip announcing your offers',      kind:'audio'},
+];
+function renderMads(){
+  return `
+  <div class="madsintro" style="background:#fff; border-radius:14px; padding:12px 14px; margin-bottom:14px; font-size:12.5px; color:var(--muted); box-shadow:var(--shadow);">
+    📣 ఇక్కడ మీ షాప్ మార్కెటింగ్ మెటీరియల్ (బోర్డు, బ్రోచర్, విజిటింగ్ కార్డ్, ప్రకటన ఆడియో) ఒక్కసారి అప్‌లోడ్ చేసి పెట్టుకోండి — ఎప్పుడైనా తెరిచి, తిరిగి Download చేసుకోవచ్చు.
+  </div>
+  ${MADS_ITEMS.map(it=>madsCardHTML(it)).join('')}
+  `;
+}
+function madsCardHTML(it){
+  const val=SETTINGS[it.key];
+  const inputId='madsInput_'+it.key;
+  let body='';
+  if(it.kind==='image'){
+    body = val
+      ? `<div class="madspreview"><img src="${val}"></div>`
+      : `<div class="madspreview"><div class="madsempty">ఇంకా ఏమీ అప్‌లోడ్ కాలేదు<br>📤 కింద బటన్ నొక్కి ఫోటో ఎంచుకోండి</div></div>`;
+  } else {
+    body = val
+      ? `<audio controls src="${val}"></audio>`
+      : `<div class="madspreview"><div class="madsempty">ఇంకా ఆడియో అప్‌లోడ్ కాలేదు<br>📤 కింద బటన్ నొక్కి ఆడియో ఫైల్ ఎంచుకోండి</div></div>`;
+  }
+  const accept = it.kind==='image' ? 'image/*' : 'audio/*';
+  const changeFn = it.kind==='image' ? `madsUploadImage('${it.key}',this)` : `madsUploadAudio('${it.key}',this)`;
+  return `
+  <div class="madscard ${it.cls}">
+    <div class="madstitle"><span>${it.icon}</span>${it.title}</div>
+    <div class="madssub">${it.sub}</div>
+    ${body}
+    <div class="madsrow">
+      <input type="file" id="${inputId}" accept="${accept}" style="display:none" onchange="${changeFn}">
+      <button class="madsbtn upload" onclick="document.getElementById('${inputId}').click()">📤 ${val?'మార్చండి':'అప్‌లోడ్ చేయండి'}</button>
+      ${val? `<button class="madsbtn download" onclick="madsDownload('${it.key}')">⬇️ Download</button>` : ''}
+      ${val? `<button class="madsbtn remove" onclick="madsRemove('${it.key}')">✕</button>` : ''}
+    </div>
+  </div>`;
+}
+async function madsUploadImage(key, inputEl){
+  const file=inputEl.files[0]; if(!file) return;
+  try{
+    const dataUrl=await compressImage(file, 1400, 0.85);
+    await saveSetting(key, dataUrl);
+    toast('అప్‌లోడ్ అయ్యింది ✓');
+    render();
+  }catch(e){ toast('అప్‌లోడ్ కాలేదు, మళ్ళీ ప్రయత్నించండి'); }
+  inputEl.value='';
+}
+async function madsUploadAudio(key, inputEl){
+  const file=inputEl.files[0]; if(!file) return;
+  if(file.size > 15*1024*1024){ toast('ఆడియో ఫైల్ చాలా పెద్దది (15MB లోపు ఉండాలి)'); return; }
+  try{
+    const dataUrl=await new Promise((resolve,reject)=>{
+      const reader=new FileReader();
+      reader.onload=()=>resolve(reader.result);
+      reader.onerror=reject;
+      reader.readAsDataURL(file);
+    });
+    await saveSetting(key, dataUrl);
+    toast('ఆడియో అప్‌లోడ్ అయ్యింది ✓');
+    render();
+  }catch(e){ toast('అప్‌లోడ్ కాలేదు, మళ్ళీ ప్రయత్నించండి'); }
+  inputEl.value='';
+}
+function madsExtFromDataUrl(dataUrl){
+  const m=/^data:([^;]+);/.exec(dataUrl||'');
+  const mime=m?m[1]:'';
+  const map={'image/jpeg':'jpg','image/png':'png','image/webp':'webp','audio/mpeg':'mp3','audio/mp3':'mp3','audio/mp4':'m4a','audio/aac':'aac','audio/ogg':'ogg','audio/wav':'wav','audio/x-wav':'wav','audio/webm':'weba'};
+  return map[mime] || (mime.split('/')[1]||'dat');
+}
+function madsDownload(key){
+  const val=SETTINGS[key]; if(!val) return;
+  const it=MADS_ITEMS.find(x=>x.key===key);
+  const ext=madsExtFromDataUrl(val);
+  const name=(SETTINGS.shopName||'Kavitha Telecom').replace(/\s+/g,'_')+'_'+(it?it.title.replace(/\s+/g,'_'):key)+'.'+ext;
+  const a=document.createElement('a');
+  a.href=val; a.download=name;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+async function madsRemove(key){
+  if(!confirm('దీన్ని తీసివేయాలా?')) return;
+  await saveSetting(key, '');
+  toast('తీసివేయబడింది');
+  render();
 }
 
 /* ================= PRODUCTS ================= */
@@ -2380,7 +2491,10 @@ async function getLogoEscposBytes(){
         const idx=(y*widthPx+x)*4;
         const r=imgData[idx], g=imgData[idx+1], b=imgData[idx+2], a=imgData[idx+3];
         const lum = a<128? 255 : (0.299*r+0.587*g+0.114*b);
-        if(lum<180){
+        // Print black ink for the logo's bright content (text/flame/phone) and
+        // leave the near-black background blank (white paper) — otherwise a
+        // dark-background logo prints as a solid black square on receipts.
+        if(lum>55){
           const byteIdx=y*bytesPerRow + (x>>3);
           bitmap[byteIdx] |= (0x80 >> (x&7));
         }
