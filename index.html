@@ -2813,9 +2813,12 @@ function oc_syncCatalogToBackend(){
     if(!oc_CONFIG.scriptUrl) return; // Order Setup లో URL పెట్టేదాకా sync చేయలేం
     try{
       const data = oc_collectData();
-      await fetch(oc_CONFIG.scriptUrl + '?action=saveCatalog', { method:'POST', body: JSON.stringify(data) });
-    }catch(e){ /* silent — customer page falls back to its own saved snapshot */ }
-  }, 400);
+      const res = await fetch(oc_CONFIG.scriptUrl + '?action=saveCatalog', { method:'POST', body: JSON.stringify(data) });
+      toast('✅ Catalog అప్డేట్ Google Sheet కి save అయ్యింది');
+    }catch(e){
+      toast('⚠️ Catalog sync కాలేదు — ఇంటర్నెట్ చెక్ చేసి, మళ్ళీ ఏదైనా మార్చండి');
+    }
+  }, 800);
 }
 
 
