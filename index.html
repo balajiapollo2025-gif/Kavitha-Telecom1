@@ -2676,6 +2676,7 @@ function renderAdCatalog(){
   <div id="dashboardActions" style="display:none; gap:10px;">
     <div class="grp"><button class="tbtn gold" onclick="oc_loadOrders()">🔄 Refresh</button></div>
     <div class="grp"><button class="tbtn alt" id="alertBtn" onclick="oc_enableAlerts()">🔔 Alerts ఆన్ చేయండి</button></div>
+    <div class="grp"><button class="tbtn" style="background:#fff0f0;color:#c0392b;border:1.5px solid #e8b4b4;" onclick="oc_clearAllOrders()">🗑️ అన్నీ Clear చేయండి</button></div>
   </div>
 </div>
 <div class="hint" id="editorHint">✏️ Text/image click చేసి edit చేయండి. మొదట <b>⚙️ Order Setup</b> లో Google Sheet URL పెట్టండి, తర్వాత products సరిచేసి <b>📥 Customer Order Page Download</b> నొక్కి వచ్చిన file ని కస్టమర్లకు WhatsApp లో పంపండి.</div>
@@ -2840,6 +2841,28 @@ const oc_gasCode = `function doGet(e) {
         sheet.getRange(i + 1, 7).setValue(status);
         break;
       }
+    }
+    return ContentService.createTextOutput(JSON.stringify({ success: true }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  if (action === 'deleteOrder') {
+    var delOrderId = e.parameter.orderId;
+    var data = sheet.getDataRange().getValues();
+    for (var i = 1; i < data.length; i++) {
+      if (String(data[i][0]) === delOrderId) {
+        sheet.deleteRow(i + 1);
+        break;
+      }
+    }
+    return ContentService.createTextOutput(JSON.stringify({ success: true }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  if (action === 'clearAllOrders') {
+    var lastRow = sheet.getLastRow();
+    if (lastRow > 1) {
+      sheet.deleteRows(2, lastRow - 1);
     }
     return ContentService.createTextOutput(JSON.stringify({ success: true }))
       .setMimeType(ContentService.MimeType.JSON);
@@ -3249,11 +3272,25 @@ async function oc_toggleOrderStatus(orderId, newStatus){
   }catch(e){ alert('Status update కాలేదు, మళ్ళీ ప్రయత్నించండి'); }
 }
 async function oc_deleteOrder(orderId){
-  if(!confirm('ఈ ఆర్డర్ ని delete చేయాలా? ఇది active list నుండి తీసివేయబడి, "🗑️ Deleted (Report)" ట్యాబ్ లో కనిపిస్తుంది.')) return;
-  await oc_toggleOrderStatus(orderId, 'Deleted');
+  if(!confirm('ఈ ఆర్డర్ ని శాశ్వతంగా (permanently) delete చేయాలా? ఇది ఇక ఎప్పటికీ వెనక్కి రాదు.')) return;
+  try{
+    await fetch(oc_CONFIG.scriptUrl + '?action=deleteOrder&orderId=' + encodeURIComponent(orderId));
+    oc_ORDERS = oc_ORDERS.filter(x=>x.orderId!==orderId);
+    oc_renderDashboard();
+    toast('ఆర్డర్ శాశ్వతంగా తీసివేయబడింది ✓');
+  }catch(e){ alert('Delete కాలేదు, మళ్ళీ ప్రయత్నించండి'); }
 }
 async function oc_restoreOrder(orderId){
   await oc_toggleOrderStatus(orderId, 'Pending');
+}
+async function oc_clearAllOrders(){
+  if(!confirm('ప్రస్తుతం ఉన్న ఆర్డర్లు అన్నీ (ఈ Sheet లో ఉన్నవి) శాశ్వతంగా delete చేయాలా? ఇది వెనక్కి తీసుకోలేము.')) return;
+  try{
+    await fetch(oc_CONFIG.scriptUrl + '?action=clearAllOrders');
+    oc_ORDERS = [];
+    oc_renderDashboard();
+    toast('అన్ని పాత ఆర్డర్లు తీసివేయబడ్డాయి ✓');
+  }catch(e){ alert('Clear కాలేదు, మళ్ళీ ప్రయత్నించండి'); }
 }
 function oc_printOrder(orderId){
   const o = oc_ORDERS.find(x=>x.orderId===orderId);
