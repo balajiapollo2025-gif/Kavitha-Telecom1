@@ -2741,6 +2741,10 @@ function renderAdCatalog(){
       <button class="close" onclick="oc_closeSettings()">Close</button>
       <button class="save" onclick="oc_saveSettings()">Save</button>
     </div>
+    <div style="margin-top:14px; padding-top:12px; border-top:1px dashed #ccc;">
+      <button class="save" style="background:#2b8a3e;color:#fff;" onclick="oc_checkBackendVersion()">🔍 Backend Version చెక్ చేయండి</button>
+      <div id="backendVersionResult" style="margin-top:8px; font-size:13px; white-space:pre-wrap;"></div>
+    </div>
 
     <details class="gasguide">
       <summary>📖 Step-by-step Setup Guide (Google Apps Script Deploy ఎలా చేయాలి)</summary>
@@ -2845,11 +2849,37 @@ async function oc_manualSync(){
     alert('❌ Sync FAILED (నెట్‌వర్క్/CORS ఎర్రర్):\\n'+(e && e.message ? e.message : e));
   }
 }
+async function oc_checkBackendVersion(){
+  const el = document.getElementById('backendVersionResult');
+  const url = document.getElementById('scriptUrl').value.trim();
+  if(!url){ el.textContent = '⚠️ ముందు పైన URL పెట్టండి'; return; }
+  el.textContent = '⏳ చెక్ చేస్తోంది...';
+  try{
+    const res = await fetch(url + '?action=ping');
+    const txt = await res.text();
+    let parsed = null;
+    try{ parsed = JSON.parse(txt); }catch(e3){}
+    if(parsed && parsed.version){
+      el.innerHTML = '✅ బ్యాకెండ్ లైవ్‌లో ఉంది<br>Version: <b>'+parsed.version+'</b><br>Server time: '+parsed.time;
+    } else {
+      el.innerHTML = '⚠️ పాత బ్యాకెండ్ కోడ్ (version check లేదు) — status '+res.status+'<br>Body: '+txt.slice(0,150);
+    }
+  }catch(e){
+    el.textContent = '❌ చెక్ కాలేదు: '+(e && e.message ? e.message : e);
+  }
+}
 
 
 let oc_CONFIG = { scriptUrl:'', waNumber:'' };
-const oc_gasCode = `function doGet(e) {
+const oc_gasCode = `var BACKEND_VERSION = 'v3-chunked-catalog';
+
+function doGet(e) {
   var action = e.parameter.action;
+
+  if (action === 'ping') {
+    return ContentService.createTextOutput(JSON.stringify({ success: true, version: BACKEND_VERSION, time: new Date().toISOString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
 
   if (action === 'getCatalog') {
     var catSheet = getCatalogSheet();
