@@ -2814,9 +2814,17 @@ function oc_syncCatalogToBackend(){
     try{
       const data = oc_collectData();
       const res = await fetch(oc_CONFIG.scriptUrl + '?action=saveCatalog', { method:'POST', body: JSON.stringify(data) });
-      toast('✅ Catalog అప్డేట్ Google Sheet కి save అయ్యింది');
+      let bodyTxt = '';
+      try{ bodyTxt = (await res.text()).slice(0,120); }catch(e2){}
+      console.log('[oc_sync] status', res.status, 'body:', bodyTxt);
+      if(res.ok && bodyTxt.indexOf('success')!==-1){
+        toast('✅ Catalog సేవ్ అయ్యింది (products: '+data.products.length+')');
+      } else {
+        toast('⚠️ Sync response: '+res.status+' — '+bodyTxt);
+      }
     }catch(e){
-      toast('⚠️ Catalog sync కాలేదు — ఇంటర్నెట్ చెక్ చేసి, మళ్ళీ ఏదైనా మార్చండి');
+      console.log('[oc_sync] error', e);
+      toast('⚠️ Sync error: '+(e && e.message ? e.message : e));
     }
   }, 800);
 }
@@ -2828,7 +2836,14 @@ const oc_gasCode = `function doGet(e) {
 
   if (action === 'getCatalog') {
     var catSheet = getCatalogSheet();
-    var json = catSheet.getRange(1, 1).getValue() || '';
+    var lastRow = catSheet.getLastRow();
+    var json = '{}';
+    if (lastRow >= 1) {
+      var values = catSheet.getRange(1, 1, lastRow, 1).getValues();
+      var parts = [];
+      for (var ci = 0; ci < values.length; ci++) { parts.push(values[ci][0]); }
+      json = parts.join('');
+    }
     return ContentService.createTextOutput(json || '{}')
       .setMimeType(ContentService.MimeType.JSON);
   }
@@ -2893,8 +2908,16 @@ function doPost(e) {
 
   if (action === 'saveCatalog') {
     var catSheet = getCatalogSheet();
-    catSheet.getRange(1, 1).setValue(e.postData.contents);
-    return ContentService.createTextOutput(JSON.stringify({ success: true }))
+    var jsonStr = e.postData.contents || '{}';
+    var chunkSize = 45000;
+    var rows = [];
+    for (var pos = 0; pos < jsonStr.length; pos += chunkSize) {
+      rows.push([jsonStr.substring(pos, pos + chunkSize)]);
+    }
+    if (rows.length === 0) rows.push(['{}']);
+    catSheet.clear();
+    catSheet.getRange(1, 1, rows.length, 1).setValues(rows);
+    return ContentService.createTextOutput(JSON.stringify({ success: true, chunks: rows.length, length: jsonStr.length }))
       .setMimeType(ContentService.MimeType.JSON);
   }
 
@@ -2978,11 +3001,17 @@ function oc_addCard(){
   div.innerHTML = oc_cardTemplate({title:"NEW PRODUCT", off:"20", mrp:"499", offer:"399"});
   grid.appendChild(div.firstElementChild);
 }
-function oc_handleImage(evt, imgEl, wrapEl){
+async function oc_handleImage(evt, imgEl, wrapEl){
   const file = evt.target.files[0]; if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e => { imgEl.src = e.target.result; wrapEl.classList.add('has-img'); };
-  reader.readAsDataURL(file);
+  try{
+    const dataUrl = await compressImage(file, 480, 0.7);
+    imgEl.src = dataUrl; wrapEl.classList.add('has-img');
+    oc_syncCatalogToBackend();
+  }catch(e){
+    const reader = new FileReader();
+    reader.onload = e2 => { imgEl.src = e2.target.result; wrapEl.classList.add('has-img'); oc_syncCatalogToBackend(); };
+    reader.readAsDataURL(file);
+  }
 }
 function oc_toggleOfferMode(){
   const on = document.getElementById('offerToggle').checked;
