@@ -360,6 +360,7 @@ body{
   #ocRoot .doid{font-size:11px; color:#a08bab; font-weight:700;}
   #ocRoot .dname{font-weight:800; font-size:15px; color:var(--maroon); margin-top:2px;}
   #ocRoot .dphone{font-size:13px; color:var(--pink); font-weight:700; text-decoration:none;}
+  #ocRoot .daddr{font-size:11.5px; color:#6b5470; margin-top:2px; max-width:220px;}
   #ocRoot .ditems{font-size:13px; color:#444; margin-top:8px; background:#faf5fd; padding:8px 10px; border-radius:8px; line-height:1.5;}
   #ocRoot .dtotal{font-family:'Playfair Display',serif; font-weight:900; font-size:20px; color:var(--red); white-space:nowrap;}
   #ocRoot .dbar{display:flex; justify-content:space-between; align-items:center; margin-top:10px; gap:8px; flex-wrap:wrap;}
@@ -3057,7 +3058,8 @@ function doGet(e) {
       phone: data[i][3],
       items: data[i][4],
       total: data[i][5],
-      status: data[i][6] || 'Pending'
+      status: data[i][6] || 'Pending',
+      address: data[i][7] || ''
     });
   }
   return ContentService.createTextOutput(JSON.stringify({ orders: orders }))
@@ -3092,7 +3094,8 @@ function doPost(e) {
     data.phone || '',
     data.items || '',
     data.total || 0,
-    'Pending'
+    'Pending',
+    data.address || ''
   ]);
   return ContentService.createTextOutput(JSON.stringify({ success: true, orderId: orderId }))
     .setMimeType(ContentService.MimeType.JSON);
@@ -3437,6 +3440,7 @@ function oc_renderDashboard(){
           <div class="doid">#${o.orderId} • ${t}</div>
           <div class="dname">${o.customerName || '-'}</div>
           <a class="dphone" href="tel:${o.phone}">📞 ${o.phone || '-'}</a>
+          ${o.address? `<div class="daddr">📍 ${o.address}</div>` : ''}
         </div>
         <div class="dtotal">₹${o.total}</div>
       </div>
@@ -3538,6 +3542,7 @@ function oc_printOrder(orderId){
       <hr class="bill-hr">
       <div class="bill-meta"><span>#${o.orderId}</span><span>${t}</span></div>
       <div class="bill-cust">${escHtml(o.customerName||'-')} • ${escHtml(o.phone||'-')}</div>
+      ${o.address? `<div class="bill-cust" style="font-weight:400; font-size:11px; margin-top:2px;">📍 ${escHtml(o.address)}</div>` : ''}
       <table class="bill-table">
         <thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Rate</th><th class="num">Amt</th></tr></thead>
         <tbody>${itemsHtml}</tbody>
@@ -3596,13 +3601,45 @@ function oc_generateCustomerPage(){
   link.href = URL.createObjectURL(blob);
   link.download = 'customer-order-page.html';
   link.click();
+
+  // Companion service worker — needed so Android Chrome shows the "Install app" prompt.
+  // Must be uploaded to the SAME folder as customer-order-page.html.
+  const swCode = "const CACHE='"+"customer-page-cache-v1"+"';\nself.addEventListener('install',e=>{ self.skipWaiting(); });\nself.addEventListener('activate',e=>{ self.clients.claim(); });\nself.addEventListener('fetch',e=>{\n  if(e.request.method!=='GET') return;\n  e.respondWith(\n    fetch(e.request).then(res=>{\n      const clone=res.clone();\n      caches.open(CACHE).then(c=>c.put(e.request, clone));\n      return res;\n    }).catch(()=>caches.match(e.request))\n  );\n});";
+  setTimeout(()=>{
+    const swBlob = new Blob([swCode], {type:'text/javascript'});
+    const swLink = document.createElement('a');
+    swLink.href = URL.createObjectURL(swBlob);
+    swLink.download = 'customer-sw.js';
+    swLink.click();
+    toast('2 ఫైల్స్ డౌన్‌లోడ్ అయ్యాయి — రెండూ ఒకే folder లో host చేయండి');
+  }, 600);
 }
 
+function oc_buildManifestDataUri(data){
+  const icons = data.logo ? [
+    {src:data.logo, sizes:'192x192', type:'image/jpeg', purpose:'any'},
+    {src:data.logo, sizes:'512x512', type:'image/jpeg', purpose:'any'}
+  ] : [];
+  const manifest = {
+    name: data.shopName + ' - Order Now',
+    short_name: data.shopName,
+    start_url: './',
+    scope: './',
+    display: 'standalone',
+    background_color: '#e9e3f5',
+    theme_color: '#2b0a35',
+    icons: icons
+  };
+  return 'data:application/manifest+json,' + encodeURIComponent(JSON.stringify(manifest));
+}
 function oc_buildCustomerHtml(data){
   const dataJson = JSON.stringify(data).replace(/</g,'\\u003c');
   return `<!DOCTYPE html>
 <html lang="te"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${data.shopName} - Order Now</title>
+<meta name="theme-color" content="#2b0a35">
+<link rel="manifest" href="${oc_buildManifestDataUri(data)}">
+${data.logo? `<link rel="icon" href="${data.logo}"><link rel="apple-touch-icon" href="${data.logo}">` : ''}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@800;900&family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"><\/script>
@@ -3618,7 +3655,7 @@ function oc_buildCustomerHtml(data){
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:14px;max-width:700px;margin:0 auto;}
 .card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 14px rgba(43,10,53,.12);position:relative;}
 .chead{background:var(--navy);color:#fff;text-align:center;font-size:11px;font-weight:800;padding:7px 4px;text-transform:uppercase;}
-.cimg{height:130px;background:#f4eef7;position:relative;}
+.cimg{height:92px;background:#f4eef7;position:relative;cursor:zoom-in;}
 .cimg img{width:100%;height:100%;object-fit:cover;}
 .badge{position:absolute;top:0;right:0;background:var(--red);color:#fff;font-weight:900;font-size:12px;padding:6px 8px 5px;clip-path:polygon(15% 0,100% 0,100% 100%,0 100%);}
 .cprice{padding:8px 10px 4px;}
@@ -3662,6 +3699,13 @@ function oc_buildCustomerHtml(data){
 .bill-total-row td{border-top:1.5px solid #333;border-bottom:none;font-weight:900;font-size:14px;padding-top:6px;}
 .bill-foot{text-align:center;font-size:11px;color:#888;margin-top:10px;}
 .printbtn{background:var(--maroon);color:#fff;border:none;width:100%;padding:11px;border-radius:9px;font-weight:800;margin-top:12px;cursor:pointer;font-size:13px;}
+.zoombg{position:fixed;inset:0;background:rgba(10,2,14,.92);display:none;align-items:center;justify-content:center;padding:20px;z-index:200;}
+.zoombg.open{display:flex;}
+.zoombg img{max-width:100%;max-height:85vh;border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.5);}
+.zoomclose{position:absolute;top:16px;right:16px;background:#fff;color:#241428;border:none;width:36px;height:36px;border-radius:50%;font-size:18px;font-weight:900;cursor:pointer;}
+.installbar{display:none;align-items:center;gap:10px;background:linear-gradient(90deg,#f2c230,#ffe27a);color:#2b0a35;padding:9px 14px;font-weight:800;font-size:12.5px;text-align:center;justify-content:center;}
+.installbar.show{display:flex;}
+.installbar button{background:#2b0a35;color:#fff;border:none;padding:7px 14px;border-radius:8px;font-weight:800;font-size:12px;cursor:pointer;}
 @media print{
   body *{visibility:hidden;}
   #billArea, #billArea *{visibility:visible;}
@@ -3678,6 +3722,7 @@ function oc_buildCustomerHtml(data){
     <div class="addr">📍 ${oc_escHtml(data.shopAddr)} &nbsp; 📞 ${oc_escHtml(data.shopPhone)}</div>
   </div>
 </div>
+<div class="installbar" id="installBar">📲 ఈ యాప్ ని మీ ఫోన్‌లో ఇన్‌స్టాల్ చేసుకోండి! <button onclick="oc_installApp()">Install చేయండి</button></div>
 <div class="band">🛒 Product మీద Qty పెట్టి ఆర్డర్ చేయండి</div>
 <div class="grid" id="grid"></div>
 <div class="footnote">${oc_escHtml(data.footerNote)}</div>
@@ -3697,8 +3742,15 @@ function oc_buildCustomerHtml(data){
     <input id="custName" placeholder="పేరు రాయండి">
     <label>ఫోన్ నంబర్ *</label>
     <input id="custPhone" placeholder="10 digit number" maxlength="10">
+    <label>పూర్తి చిరునామా (Full Address) *</label>
+    <textarea id="custAddr" placeholder="ఇంటి నెంబర్, వీధి, ఊరు, పిన్‌కోడ్" rows="3" style="width:100%;padding:10px;border:1.5px solid #ddd;border-radius:8px;margin-top:6px;font-size:13px;font-family:inherit;resize:vertical;"></textarea>
     <button class="placebtn" onclick="oc_placeOrder()">✅ Order Confirm చేయండి</button>
   </div>
+</div>
+
+<div class="zoombg" id="zoomModal" onclick="oc_closeZoom()">
+  <button class="zoomclose" onclick="oc_closeZoom(event)">✕</button>
+  <img id="zoomImg" src="">
 </div>
 
 <div class="modalbg" id="thanksModal">
@@ -3713,6 +3765,7 @@ function oc_buildCustomerHtml(data){
       <hr class="bill-hr">
       <div class="bill-meta"><span id="billId"></span><span id="billDate"></span></div>
       <div class="bill-cust" id="billCust"></div>
+      <div class="bill-cust" id="billAddr" style="font-weight:400; font-size:11px; margin-top:2px;"></div>
       <table class="bill-table">
         <thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Rate</th><th class="num">Amt</th></tr></thead>
         <tbody id="billItems"></tbody>
@@ -3752,7 +3805,7 @@ function oc_render(){
     const price = DATA.offerMode ? p.offer : p.mrp;
     return \`<div class="card \${DATA.offerMode?'':'mrponly'}">
       <div class="chead">\${p.title}</div>
-      <div class="cimg">\${p.img?('<img src="'+p.img+'">'):'<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#b79bc2;font-size:12px;">🖼️</div>'}
+      <div class="cimg">\${p.img?('<img src="'+p.img+'" onclick="event.stopPropagation();oc_openZoom(\\''+p.img+'\\')">'):'<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#b79bc2;font-size:12px;">🖼️</div>'}
         <div class="badge">\${p.off}%<br>OFF</div>
       </div>
       <div class="cprice">
@@ -3769,6 +3822,39 @@ function oc_render(){
 }
 oc_render();
 oc_refreshCatalog();
+
+function oc_openZoom(src){
+  document.getElementById('zoomImg').src = src;
+  document.getElementById('zoomModal').classList.add('open');
+}
+function oc_closeZoom(ev){
+  document.getElementById('zoomModal').classList.remove('open');
+}
+
+let oc_deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (ev)=>{
+  ev.preventDefault();
+  oc_deferredInstallPrompt = ev;
+  const bar = document.getElementById('installBar');
+  if(bar) bar.classList.add('show');
+});
+async function oc_installApp(){
+  if(!oc_deferredInstallPrompt) return;
+  oc_deferredInstallPrompt.prompt();
+  await oc_deferredInstallPrompt.userChoice;
+  oc_deferredInstallPrompt = null;
+  const bar = document.getElementById('installBar');
+  if(bar) bar.classList.remove('show');
+}
+window.addEventListener('appinstalled', ()=>{
+  const bar = document.getElementById('installBar');
+  if(bar) bar.classList.remove('show');
+});
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('./customer-sw.js').catch(()=>{ /* ఫైల్ లేకపోతే — page ఇలాగే పని చేస్తుంది, install ఫీచర్ మాత్రం రాదు */ });
+  });
+}
 
 function oc_changeQty(id, delta){
   const p = DATA.products.find(x=>x.id===id);
@@ -3802,13 +3888,15 @@ function oc_closeCheckout(){ document.getElementById('checkoutModal').classList.
 async function oc_placeOrder(){
   const name = document.getElementById('custName').value.trim();
   const phone = document.getElementById('custPhone').value.trim();
+  const address = document.getElementById('custAddr').value.trim();
   if(!name || phone.length<10){ alert('దయచేసి పేరు మరియు సరైన ఫోన్ నంబర్ ఇవ్వండి'); return; }
+  if(!address){ alert('దయచేసి మీ పూర్తి చిరునామా ఇవ్వండి'); return; }
   const items = Object.values(cart);
   if(items.length===0){ alert('Cart ఖాళీగా ఉంది'); return; }
   const itemsStr = items.map(i=>\`\${i.title} x\${i.qty} (₹\${i.price} each)\`).join('; ');
   const total = items.reduce((a,b)=>a+b.qty*b.price,0);
 
-  const payload = { customerName:name, phone:phone, items:itemsStr, total:total };
+  const payload = { customerName:name, phone:phone, address:address, items:itemsStr, total:total };
 
   try{
     await fetch(DATA.scriptUrl, {
@@ -3824,11 +3912,13 @@ async function oc_placeOrder(){
   document.getElementById('billId').innerText = '#' + orderIdLocal;
   document.getElementById('billDate').innerText = new Date().toLocaleString('en-IN');
   document.getElementById('billCust').innerText = name + ' • ' + phone;
+  document.getElementById('billAddr').innerText = address ? ('📍 ' + address) : '';
   document.getElementById('billItems').innerHTML = items.map(i=>
     \`<tr><td>\${i.title}</td><td class="num">\${i.qty}</td><td class="num">₹\${i.price}</td><td class="num">₹\${i.qty*i.price}</td></tr>\`
   ).join('');
   document.getElementById('billTotal').innerText = '₹' + total;
   document.getElementById('thanksModal').classList.add('open');
+  document.getElementById('custAddr').value = '';
 
   cart = {}; oc_updateCartBar(); oc_render();
 }
