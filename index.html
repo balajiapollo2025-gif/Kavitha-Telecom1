@@ -290,6 +290,9 @@ body{
   #ocRoot .grid{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; padding:16px;}
   #ocRoot .card{background:#fff; border-radius:10px; overflow:hidden; box-shadow:0 4px 14px rgba(43,10,53,.12); position:relative; border:1px solid #eee2f0;}
   #ocRoot .card-head{background:var(--navy); color:#fff; text-align:center; font-size:11px; font-weight:800; padding:7px 4px; text-transform:uppercase;}
+  #ocRoot .card-cat{background:var(--gold); color:#3a2400; text-align:center; font-size:9.5px; font-weight:800; padding:3px 4px; letter-spacing:.3px;}
+  #ocRoot .card-cat:empty::before{content:attr(data-ph); opacity:.6; font-weight:600;}
+  #ocRoot .cat-header{grid-column:1/-1; margin:14px 0 4px; padding:8px 12px; background:linear-gradient(90deg,var(--navy),#3a1f52); color:#fff; border-radius:10px; font-size:13px; font-weight:800; display:flex; align-items:center; gap:6px;}
   #ocRoot .card-img{height:120px; background:#f4eef7; position:relative; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#b79bc2; font-size:12px; font-weight:600;}
   #ocRoot .card-img img{width:100%;height:100%;object-fit:cover; display:none; position:absolute; inset:0;}
   #ocRoot .card-img.has-img img{display:block;}
@@ -2788,6 +2791,7 @@ function renderAdCatalog(){
     <div class="grp"><button class="tbtn alt" onclick="oc_openSettings()">⚙️ Order Setup</button></div>
     <div class="grp"><button class="tbtn green" onclick="oc_generateCustomerPage()">📥 Customer Order Page Download</button></div>
     <div class="grp"><button class="tbtn alt" onclick="oc_manualSync()">🔄 ఇప్పుడు Sync చేయండి</button></div>
+    <div class="grp"><button class="tbtn" style="background:#fff4d6;color:#7a5900;border:1.5px solid #f2c230;" onclick="oc_sortGridByCategory()">🗂️ కేటగిరీల ప్రకారం సర్దండి</button></div>
   </div>
   <div id="dashboardActions" style="display:none; gap:10px;">
     <div class="grp"><button class="tbtn gold" onclick="oc_loadOrders()">🔄 Refresh</button></div>
@@ -3131,16 +3135,17 @@ function oc_escHtml(s){
 }
 
 const oc_defaultCards = [
-  {title:"PHONE COVERS", off:"28", mrp:"399", offer:"289"},
-  {title:"EARBUDS", off:"25", mrp:"1499", offer:"1099"},
-  {title:"USB CABLES", off:"30", mrp:"299", offer:"199"},
-  {title:"POWER BANKS", off:"25", mrp:"1299", offer:"949"},
+  {title:"PHONE COVERS", off:"28", mrp:"399", offer:"289", category:"Phone Accessories"},
+  {title:"EARBUDS", off:"25", mrp:"1499", offer:"1099", category:"Audio & Earbuds"},
+  {title:"USB CABLES", off:"30", mrp:"299", offer:"199", category:"Cables & Chargers"},
+  {title:"POWER BANKS", off:"25", mrp:"1299", offer:"949", category:"Power Banks"},
 ];
 
 function oc_cardTemplate(d){
   return `<div class="card">
     <button class="card-del" onclick="this.closest('.card').remove()">✕</button>
     <div class="card-edit-hint">✏️</div>
+    <div class="card-cat editable" contenteditable="true" data-ph="కేటగిరీ పెట్టండి">${d.category||''}</div>
     <div class="card-head editable" contenteditable="true">${d.title}</div>
     <div class="card-img" onclick="oc_triggerImg(this)">
       <span class="ph">🖼️ ఫోటో పెట్టండి</span>
@@ -3158,6 +3163,25 @@ function oc_cardTemplate(d){
 }
 function oc_triggerImg(el){ el.querySelector('input[type=file]').click(); }
 function oc_renderDefault(){ document.getElementById('grid').innerHTML = oc_defaultCards.map(oc_cardTemplate).join(''); }
+function oc_sortGridByCategory(){
+  const data = oc_collectData();
+  if(!data.products.length){ toast('ముందు products యాడ్ చేయండి'); return; }
+  const grouped = {};
+  data.products.forEach(p=>{
+    const cat = (p.category||'ఇతరాలు').trim() || 'ఇతరాలు';
+    (grouped[cat] = grouped[cat] || []).push(p);
+  });
+  const cats = Object.keys(grouped).sort((a,b)=>a.localeCompare(b,'te'));
+  const grid = document.getElementById('grid');
+  let html = '';
+  cats.forEach(cat=>{
+    html += `<div class="cat-header">🗂️ ${cat} (${grouped[cat].length})</div>`;
+    html += grouped[cat].map(oc_cardTemplate).join('');
+  });
+  grid.innerHTML = html;
+  toast('కేటగిరీల ప్రకారం సర్దారు ✓');
+  oc_syncCatalogToBackend();
+}
 
 function oc_addCard(){
   const grid = document.getElementById('grid');
@@ -3582,6 +3606,7 @@ function oc_collectData(){
     return {
       id: 'P'+i,
       title: card.querySelector('.card-head').innerText.trim(),
+      category: (card.querySelector('.card-cat').innerText||'').trim() || 'ఇతరాలు',
       img: (img && img.src && img.src.startsWith('data:')) ? img.src : '',
       off: card.querySelector('.badge .editable').innerText.trim(),
       mrp: card.querySelector('.mrp-value').innerText.trim(),
@@ -3667,6 +3692,8 @@ ${data.logo? `<link rel="icon" href="${data.logo}"><link rel="apple-touch-icon" 
 .addr{color:#e9d7f2;font-size:11.5px;margin-top:4px;}
 .band{background:linear-gradient(90deg,var(--pink),#ff4fa3);color:#fff;text-align:center;padding:9px;font-weight:800;font-size:13px;}
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:14px;max-width:700px;margin:0 auto;}
+.cat-header{grid-column:1/-1; margin:10px 0 2px; padding:9px 14px; background:linear-gradient(90deg,#2b0a35,#5b2170); color:#fff; border-radius:10px; font-size:13.5px; font-weight:800;}
+.cat-header:first-child{margin-top:0;}
 .card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 14px rgba(43,10,53,.12);position:relative;}
 .chead{background:var(--navy);color:#fff;text-align:center;font-size:11px;font-weight:800;padding:7px 4px;text-transform:uppercase;}
 .cimg{height:92px;background:#f4eef7;position:relative;cursor:zoom-in;}
@@ -3815,24 +3842,35 @@ function oc_escHtml(s){ return String(s||''); }
 function oc_render(){
   const grid = document.getElementById('grid');
   if(DATA.offerMode===false) grid.classList.add('mrponly');
-  grid.innerHTML = DATA.products.map(p=>{
-    const price = DATA.offerMode ? p.offer : p.mrp;
-    return \`<div class="card \${DATA.offerMode?'':'mrponly'}">
-      <div class="chead">\${p.title}</div>
-      <div class="cimg">\${p.img?('<img src="'+p.img+'" onclick="event.stopPropagation();oc_openZoom(\\''+p.img+'\\')">'):'<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#b79bc2;font-size:12px;">🖼️</div>'}
-        <div class="badge">\${p.off}%<br>OFF</div>
-      </div>
-      <div class="cprice">
-        <div class="mrp">MRP <span class="mrpval">₹\${p.mrp}</span></div>
-        <div class="offer">OFFER ₹\${p.offer}/-</div>
-      </div>
-      <div class="qtybar">
-        <button onclick="oc_changeQty('\${p.id}',-1)">−</button>
-        <span class="qn" id="qn-\${p.id}">0</span>
-        <button onclick="oc_changeQty('\${p.id}',1)">+</button>
-      </div>
-    </div>\`;
-  }).join('');
+  const grouped = {};
+  DATA.products.forEach(p=>{
+    const cat = (p.category||'').trim() || 'ఇతర ఉత్పత్తులు';
+    (grouped[cat] = grouped[cat] || []).push(p);
+  });
+  const cats = Object.keys(grouped).sort((a,b)=>a.localeCompare(b,'te'));
+  let html = '';
+  cats.forEach(cat=>{
+    html += \`<div class="cat-header">🗂️ \${cat}</div>\`;
+    html += grouped[cat].map(p=>{
+      const price = DATA.offerMode ? p.offer : p.mrp;
+      return \`<div class="card \${DATA.offerMode?'':'mrponly'}">
+        <div class="chead">\${p.title}</div>
+        <div class="cimg">\${p.img?('<img src="'+p.img+'" onclick="event.stopPropagation();oc_openZoom(\\''+p.img+'\\')">'):'<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#b79bc2;font-size:12px;">🖼️</div>'}
+          <div class="badge">\${p.off}%<br>OFF</div>
+        </div>
+        <div class="cprice">
+          <div class="mrp">MRP <span class="mrpval">₹\${p.mrp}</span></div>
+          <div class="offer">OFFER ₹\${p.offer}/-</div>
+        </div>
+        <div class="qtybar">
+          <button onclick="oc_changeQty('\${p.id}',-1)">−</button>
+          <span class="qn" id="qn-\${p.id}">0</span>
+          <button onclick="oc_changeQty('\${p.id}',1)">+</button>
+        </div>
+      </div>\`;
+    }).join('');
+  });
+  grid.innerHTML = html;
 }
 oc_render();
 oc_refreshCatalog();
