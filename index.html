@@ -3756,6 +3756,10 @@ ${data.logo? `<link rel="icon" href="${data.logo}"><link rel="apple-touch-icon" 
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:14px;max-width:700px;margin:0 auto;}
 .cat-header{grid-column:1/-1; margin:10px 0 2px; padding:9px 14px; background:linear-gradient(90deg,#2b0a35,#5b2170); color:#fff; border-radius:10px; font-size:13.5px; font-weight:800;}
 .cat-header:first-child{margin-top:0;}
+.catFilterBar{display:flex; gap:8px; overflow-x:auto; padding:12px 14px 4px; max-width:700px; margin:0 auto; -webkit-overflow-scrolling:touch;}
+.catFilterBar::-webkit-scrollbar{display:none;}
+.catchip{flex:0 0 auto; padding:7px 16px; border-radius:20px; background:#fff; border:1.5px solid #d8c3e0; color:#5b2170; font-size:12.5px; font-weight:700; cursor:pointer; white-space:nowrap;}
+.catchip.active{background:#5b2170; color:#fff; border-color:#5b2170;}
 .card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 14px rgba(43,10,53,.12);position:relative;}
 .chead{background:var(--navy);color:#fff;text-align:center;font-size:11px;font-weight:800;padding:7px 4px;text-transform:uppercase;}
 .cimg{height:92px;background:#f4eef7;position:relative;cursor:zoom-in;}
@@ -3827,6 +3831,7 @@ ${data.logo? `<link rel="icon" href="${data.logo}"><link rel="apple-touch-icon" 
 </div>
 <div class="installbar" id="installBar">📲 Install this app on your phone! <button onclick="oc_installApp()">Install</button></div>
 <div class="band">🛒 Set Qty on a product to order it</div>
+<div class="catFilterBar" id="catFilterBar"></div>
 <div class="grid" id="grid"></div>
 <div class="footnote">${oc_escHtml(data.footerNote)}</div>
 
@@ -3901,6 +3906,13 @@ async function oc_refreshCatalog(){
 
 function oc_escHtml(s){ return String(s||''); }
 
+let oc_activeCat = 'All';
+function oc_setCatFilter(cat){
+  oc_activeCat = cat;
+  oc_render();
+  const bar = document.getElementById('catFilterBar');
+  if(bar && bar.scrollIntoView) bar.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
 function oc_render(){
   const grid = document.getElementById('grid');
   if(DATA.offerMode===false) grid.classList.add('mrponly');
@@ -3910,8 +3922,18 @@ function oc_render(){
     (grouped[cat] = grouped[cat] || []).push(p);
   });
   const cats = Object.keys(grouped).sort((a,b)=>a.localeCompare(b,'te'));
+
+  // filter chip bar
+  const chipBar = document.getElementById('catFilterBar');
+  if(chipBar){
+    let chipHtml = \`<button class="catchip \${oc_activeCat==='All'?'active':''}" onclick="oc_setCatFilter('All')">🗂️ All</button>\`;
+    chipHtml += cats.map(c=>\`<button class="catchip \${oc_activeCat===c?'active':''}" onclick="oc_setCatFilter('\${c.replace(/'/g,"\\\\'")}')">\${c}</button>\`).join('');
+    chipBar.innerHTML = chipHtml;
+  }
+
+  const catsToShow = oc_activeCat==='All' ? cats : cats.filter(c=>c===oc_activeCat);
   let html = '';
-  cats.forEach(cat=>{
+  catsToShow.forEach(cat=>{
     html += \`<div class="cat-header">🗂️ \${cat}</div>\`;
     html += grouped[cat].map(p=>{
       const price = DATA.offerMode ? p.offer : p.mrp;
@@ -3932,7 +3954,7 @@ function oc_render(){
       </div>\`;
     }).join('');
   });
-  grid.innerHTML = html;
+  grid.innerHTML = html || '<div style="grid-column:1/-1;text-align:center;padding:30px;color:#8a7290;">No products in this category yet.</div>';
 }
 oc_render();
 oc_refreshCatalog();
