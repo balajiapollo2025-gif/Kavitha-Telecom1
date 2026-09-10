@@ -2792,6 +2792,7 @@ function renderAdCatalog(){
     <div class="grp"><button class="tbtn green" onclick="oc_generateCustomerPage()">📥 Customer Order Page Download</button></div>
     <div class="grp"><button class="tbtn alt" onclick="oc_manualSync()">🔄 Sync Now</button></div>
     <div class="grp"><button class="tbtn" style="background:#fff4d6;color:#7a5900;border:1.5px solid #f2c230;" onclick="oc_sortGridByCategory()">🗂️ Sort by Category</button></div>
+    <div class="grp"><button class="tbtn alt" onclick="oc_loadFromServer()">☁️ Load Saved Catalog</button></div>
   </div>
   <div id="dashboardActions" style="display:none; gap:10px;">
     <div class="grp"><button class="tbtn gold" onclick="oc_loadOrders()">🔄 Refresh</button></div>
@@ -2900,6 +2901,7 @@ async function ocInitScreen(){
   } else {
     oc_renderDefault();
   }
+  oc_ensureCategoryDropdowns();
   const nameEl=document.getElementById('shopName');
   if(nameEl) nameEl.textContent = SETTINGS.shopName || 'MY SHOP';
   const logoImg=document.getElementById('logoImg');
@@ -3191,6 +3193,24 @@ function oc_cardTemplate(d){
 }
 function oc_triggerImg(el){ el.querySelector('input[type=file]').click(); }
 function oc_renderDefault(){ document.getElementById('grid').innerHTML = oc_defaultCards.map(oc_cardTemplate).join(''); }
+async function oc_loadFromServer(){
+  if(!oc_CONFIG.scriptUrl){ alert('⚠️ Please set the Google Sheet Backend URL in ⚙️ Order Setup first!'); return; }
+  if(!confirm('This will replace what you see now with the catalog saved on the server. Continue?')) return;
+  try{
+    const res = await fetch(oc_CONFIG.scriptUrl + '?action=getCatalog');
+    const data = await res.json();
+    if(!data || !Array.isArray(data.products) || !data.products.length){ alert('No catalog found on the server yet.'); return; }
+    document.getElementById('grid').innerHTML = data.products.map(oc_cardTemplate).join('');
+    if(data.shopTag!=null) document.getElementById('shopTag').innerText = data.shopTag;
+    if(data.shopAddr!=null) document.getElementById('shopAddr').innerText = data.shopAddr;
+    if(data.shopPhone!=null) document.getElementById('shopPhone').innerText = data.shopPhone;
+    if(data.footerNote!=null) document.getElementById('footerNote').innerText = data.footerNote;
+    if(typeof data.offerMode==='boolean') document.getElementById('offerToggle').checked = data.offerMode;
+    toast('Loaded latest catalog from server ✓');
+    const b=document.getElementById('brochure');
+    if(b){ try{ await saveSetting('adCatalogHTML', b.outerHTML); }catch(e){} }
+  }catch(e){ alert('❌ Could not load from server: '+(e&&e.message?e.message:e)); }
+}
 function oc_sortGridByCategory(){
   const data = oc_collectData();
   if(!data.products.length){ toast('Please add products first'); return; }
@@ -3627,14 +3647,28 @@ oc_DASH_TIMER = setInterval(()=>{
   if(btn && btn.classList.contains('active')) oc_loadOrders();
 }, 10000);
 
+function oc_ensureCategoryDropdowns(){
+  document.querySelectorAll('#grid .card').forEach(card=>{
+    if(card.querySelector('.card-cat')) return;
+    // Old card saved before the category feature existed — add the dropdown now.
+    const catEl = document.createElement('select');
+    catEl.className = 'card-cat';
+    catEl.setAttribute('onchange','oc_handleCategoryChange(this)');
+    catEl.innerHTML = oc_categoryOptionsHtml('');
+    const headEl = card.querySelector('.card-head');
+    card.insertBefore(catEl, headEl || null);
+  });
+}
 function oc_collectData(){
+  oc_ensureCategoryDropdowns();
   const offerMode = document.getElementById('offerToggle').checked;
   const products = [...document.querySelectorAll('#grid .card')].map((card,i)=>{
     const img = card.querySelector('.card-img img');
+    const catEl = card.querySelector('.card-cat');
     return {
       id: 'P'+i,
       title: card.querySelector('.card-head').innerText.trim(),
-      category: (card.querySelector('.card-cat').value||'').trim() || 'Other',
+      category: (catEl && catEl.value||'').trim() || 'Other',
       img: (img && img.src && img.src.startsWith('data:')) ? img.src : '',
       off: card.querySelector('.badge .editable').innerText.trim(),
       mrp: card.querySelector('.mrp-value').innerText.trim(),
