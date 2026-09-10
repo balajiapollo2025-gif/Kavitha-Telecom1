@@ -3169,6 +3169,13 @@ function oc_handleCategoryChange(selectEl){
       selectEl.value = oc_PRESET_CATEGORIES[0];
     }
   }
+  // A <select>'s live "value" isn't reflected in outerHTML unless the chosen
+  // <option>'s "selected" attribute is also set — without this, the category
+  // reverts to the template default after a refresh (which restores the
+  // locally-saved outerHTML snapshot).
+  [...selectEl.options].forEach(o=>o.removeAttribute('selected'));
+  const chosen = selectEl.options[selectEl.selectedIndex];
+  if(chosen) chosen.setAttribute('selected','selected');
   oc_syncCatalogToBackend();
 }
 function oc_cardTemplate(d){
