@@ -290,8 +290,8 @@ body{
   #ocRoot .grid{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; padding:16px;}
   #ocRoot .card{background:#fff; border-radius:10px; overflow:hidden; box-shadow:0 4px 14px rgba(43,10,53,.12); position:relative; border:1px solid #eee2f0;}
   #ocRoot .card-head{background:var(--navy); color:#fff; text-align:center; font-size:11px; font-weight:800; padding:7px 4px; text-transform:uppercase;}
-  #ocRoot .card-cat{background:var(--gold); color:#3a2400; text-align:center; font-size:9.5px; font-weight:800; padding:3px 4px; letter-spacing:.3px;}
-  #ocRoot .card-cat:empty::before{content:attr(data-ph); opacity:.6; font-weight:600;}
+  #ocRoot .card-cat{background:var(--gold); color:#3a2400; text-align:center; font-size:9.5px; font-weight:800; padding:4px 4px; letter-spacing:.3px; border:none; width:100%; outline:none; text-align-last:center; -webkit-appearance:none; appearance:none; cursor:pointer; font-family:inherit;}
+  #ocRoot .card-cat option{background:#fff; color:#3a2400; font-weight:600;}
   #ocRoot .cat-header{grid-column:1/-1; margin:14px 0 4px; padding:8px 12px; background:linear-gradient(90deg,var(--navy),#3a1f52); color:#fff; border-radius:10px; font-size:13px; font-weight:800; display:flex; align-items:center; gap:6px;}
   #ocRoot .card-img{height:120px; background:#f4eef7; position:relative; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#b79bc2; font-size:12px; font-weight:600;}
   #ocRoot .card-img img{width:100%;height:100%;object-fit:cover; display:none; position:absolute; inset:0;}
@@ -2785,48 +2785,48 @@ function renderAdCatalog(){
     <button class="tbtn alt tab-btn" id="tabReportBtn" onclick="oc_showTab('report')">📊 Orders Report</button>
   </div>
   <div id="editorActions" style="display:flex; gap:10px; flex-wrap:wrap;">
-    <div class="grp"><span class="tlabel">Offer చూపించు</span>
+    <div class="grp"><span class="tlabel">Show Offer</span>
       <label class="switch"><input type="checkbox" id="offerToggle" checked onchange="oc_toggleOfferMode()"><span class="slider"></span></label>
       <span class="tlabel">Only MRP</span></div>
     <div class="grp"><button class="tbtn alt" onclick="oc_openSettings()">⚙️ Order Setup</button></div>
     <div class="grp"><button class="tbtn green" onclick="oc_generateCustomerPage()">📥 Customer Order Page Download</button></div>
-    <div class="grp"><button class="tbtn alt" onclick="oc_manualSync()">🔄 ఇప్పుడు Sync చేయండి</button></div>
-    <div class="grp"><button class="tbtn" style="background:#fff4d6;color:#7a5900;border:1.5px solid #f2c230;" onclick="oc_sortGridByCategory()">🗂️ కేటగిరీల ప్రకారం సర్దండి</button></div>
+    <div class="grp"><button class="tbtn alt" onclick="oc_manualSync()">🔄 Sync Now</button></div>
+    <div class="grp"><button class="tbtn" style="background:#fff4d6;color:#7a5900;border:1.5px solid #f2c230;" onclick="oc_sortGridByCategory()">🗂️ Sort by Category</button></div>
   </div>
   <div id="dashboardActions" style="display:none; gap:10px;">
     <div class="grp"><button class="tbtn gold" onclick="oc_loadOrders()">🔄 Refresh</button></div>
-    <div class="grp"><button class="tbtn alt" id="alertBtn" onclick="oc_enableAlerts()">🔔 Alerts ఆన్ చేయండి</button></div>
-    <div class="grp"><button class="tbtn" style="background:#fff0f0;color:#c0392b;border:1.5px solid #e8b4b4;" onclick="oc_clearAllOrders()">🗑️ అన్నీ Clear చేయండి</button></div>
+    <div class="grp"><button class="tbtn alt" id="alertBtn" onclick="oc_enableAlerts()">🔔 Turn On Alerts</button></div>
+    <div class="grp"><button class="tbtn" style="background:#fff0f0;color:#c0392b;border:1.5px solid #e8b4b4;" onclick="oc_clearAllOrders()">🗑️ Clear All</button></div>
   </div>
 </div>
-<div class="hint" id="editorHint">✏️ Text/image click చేసి edit చేయండి. మొదట <b>⚙️ Order Setup</b> లో Google Sheet URL పెట్టండి, తర్వాత products సరిచేసి <b>📥 Customer Order Page Download</b> నొక్కి వచ్చిన file ని కస్టమర్లకు WhatsApp లో పంపండి.</div>
-<div class="hint" id="dashHint" style="display:none;">📋 ఇక్కడ customers పెట్టిన ఆర్డర్లు కనిపిస్తాయి. Order Setup లో పెట్టిన అదే Google Sheet URL వాడుతుంది.</div>
+<div class="hint" id="editorHint">✏️ Click on text/image to edit. First set the Google Sheet URL in <b>⚙️ Order Setup</b>, then fix up your products and click <b>📥 Customer Order Page Download</b> to send the downloaded file to your customers on WhatsApp.</div>
+<div class="hint" id="dashHint" style="display:none;">📋 Orders placed by customers show up here. It uses the same Google Sheet URL set in Order Setup.</div>
 
 <div class="stage" id="editorPage">
   <div class="brochure" id="brochure">
     <div class="header">
-      <div class="logo-wrap" title="Shop Settings లో లోగో మారుస్తుంది">
+      <div class="logo-wrap" title="Logo changes from Shop Settings">
         <span class="ph">LOGO</span>
         <img id="logoImg">
       </div>
       <div class="shopinfo">
-        <div class="shopname" id="shopName" title="Settings లో Shop Name నుండి వస్తుంది">SREE LAKSHMI</div>
+        <div class="shopname" id="shopName" title="Comes from Shop Name in Settings">SREE LAKSHMI</div>
         <div class="shoptag editable" contenteditable="true" id="shopTag">FANCY STORE</div>
         <div class="addr editable" contenteditable="true" id="shopAddr">📍 Kothapallimitta, S.R.Puram Mandal, Chittoor Dist.</div>
         <div class="phone-line">📞 <span class="editable" contenteditable="true" id="shopPhone">9XXXXXXXXX</span></div>
       </div>
     </div>
-    <div class="band">📦 <span class="editable" contenteditable="true">ఆర్డర్ చేయడానికి</span> ఏ product మీద అయినా <span class="editable" contenteditable="true">క్లిక్</span> చేయండి</div>
+    <div class="band">📦 <span class="editable" contenteditable="true">Tap</span> on any product <span class="editable" contenteditable="true">to order</span></div>
     <div class="grid" id="grid"></div>
-    <div class="addcard" onclick="oc_addCard()">➕ కొత్త Product చేర్చండి</div>
-    <div class="footer editable" contenteditable="true" id="footerNote">ఆర్డర్ చేసాక 24 గంటల్లో డెలివరీ చేయబడుతుంది</div>
+    <div class="addcard" onclick="oc_addCard()">➕ Add New Product</div>
+    <div class="footer editable" contenteditable="true" id="footerNote">Orders will be delivered within 24 hours</div>
   </div>
 </div>
 
 <div id="dashboardPage" style="display:none; max-width:1000px; margin:0 auto; padding:16px 20px 40px;">
   <div class="dstats" id="dstats"></div>
   <div class="dfilters" id="dfilters">
-    <button class="active" data-f="all" onclick="oc_setDashFilter('all',this)">అన్నీ</button>
+    <button class="active" data-f="all" onclick="oc_setDashFilter('all',this)">All</button>
     <button data-f="Pending" onclick="oc_setDashFilter('Pending',this)">Pending</button>
     <button data-f="Completed" onclick="oc_setDashFilter('Completed',this)">Completed</button>
     <button data-f="Deleted" onclick="oc_setDashFilter('Deleted',this)">🗑️ Deleted (Report)</button>
@@ -2836,13 +2836,13 @@ function renderAdCatalog(){
 
 <div id="reportPage" style="display:none; max-width:1000px; margin:0 auto; padding:16px 20px 40px;">
   <div class="dfilters" id="rfilters">
-    <button class="active" data-r="today" onclick="oc_setReportRange('today',this)">ఈరోజు</button>
-    <button data-r="week" onclick="oc_setReportRange('week',this)">ఈ వారం</button>
-    <button data-r="month" onclick="oc_setReportRange('month',this)">ఈ నెల</button>
-    <button data-r="all" onclick="oc_setReportRange('all',this)">అన్నీ</button>
+    <button class="active" data-r="today" onclick="oc_setReportRange('today',this)">Today</button>
+    <button data-r="week" onclick="oc_setReportRange('week',this)">This Week</button>
+    <button data-r="month" onclick="oc_setReportRange('month',this)">This Month</button>
+    <button data-r="all" onclick="oc_setReportRange('all',this)">All</button>
   </div>
   <div class="dstats" id="rstats"></div>
-  <button class="tbtn" style="margin:10px 0; width:100%; text-align:center;" onclick="oc_downloadReportPDF()">📄 Report PDF డౌన్‌లోడ్ చేయండి</button>
+  <button class="tbtn" style="margin:10px 0; width:100%; text-align:center;" onclick="oc_downloadReportPDF()">📄 Download Report PDF</button>
   <div class="dlist" id="rlist"></div>
 </div>
 
@@ -2850,36 +2850,36 @@ function renderAdCatalog(){
 <div class="modal-bg" id="settingsModal">
   <div class="modal">
     <h2>⚙️ Order Setup</h2>
-    <p>Google Apps Script deploy చేసాక వచ్చిన URL ని ఇక్కడ పేస్ట్ చేయండి. కింద "📖 Step-by-step Setup Guide" నొక్కితే పూర్తి వివరాలు కనిపిస్తాయి.</p>
+    <p>Paste the URL you get after deploying the Google Apps Script here. Click "📖 Step-by-step Setup Guide" below for full details.</p>
     <label>Google Sheet Backend URL</label>
     <input type="text" id="scriptUrl" placeholder="https://script.google.com/macros/s/xxxx/exec">
-    <label>WhatsApp Order Number (fallback, country code తో)</label>
+    <label>WhatsApp Order Number (fallback, with country code)</label>
     <input type="text" id="waNumber" placeholder="91XXXXXXXXXX">
-    <div class="status-ok" id="savedMsg">✅ Save అయ్యింది!</div>
+    <div class="status-ok" id="savedMsg">✅ Saved!</div>
     <div class="row">
       <button class="close" onclick="oc_closeSettings()">Close</button>
       <button class="save" onclick="oc_saveSettings()">Save</button>
     </div>
     <div style="margin-top:14px; padding-top:12px; border-top:1px dashed #ccc;">
-      <button class="save" style="background:#2b8a3e;color:#fff;" onclick="oc_checkBackendVersion()">🔍 Backend Version చెక్ చేయండి</button>
+      <button class="save" style="background:#2b8a3e;color:#fff;" onclick="oc_checkBackendVersion()">🔍 Check Backend Version</button>
       <div id="backendVersionResult" style="margin-top:8px; font-size:13px; white-space:pre-wrap;"></div>
     </div>
 
     <details class="gasguide">
-      <summary>📖 Step-by-step Setup Guide (Google Apps Script Deploy ఎలా చేయాలి)</summary>
+      <summary>📖 Step-by-step Setup Guide (How to Deploy Google Apps Script)</summary>
       <ol class="gassteps">
-        <li><b>Google Sheet క్రియేట్ చేయండి</b> — <b>sheets.google.com</b> ఓపెన్ చేసి, "Blank" నొక్కి కొత్త spreadsheet తయారు చేయండి. దానికి "Kavitha Telecom Orders" లాంటి పేరు పెట్టండి.</li>
-        <li><b>Apps Script ఓపెన్ చేయండి</b> — పైన మెనూలో <b>Extensions → Apps Script</b> నొక్కండి. కొత్త ట్యాబ్‌లో కోడ్ ఎడిటర్ తెరుచుకుంటుంది.</li>
-        <li><b>పాత కోడ్ తీసేయండి</b> — అక్కడ ఇప్పటికే ఉన్న <code>function myFunction(){}</code> లాంటి డిఫాల్ట్ కోడ్ మొత్తం సెలెక్ట్ చేసి డిలీట్ చేయండి.</li>
-        <li><b>కొత్త కోడ్ పేస్ట్ చేయండి</b> — కింద ఉన్న "📋 Copy Code" బటన్ నొక్కి, ఆ కోడ్‌ని అక్కడ పేస్ట్ చేయండి (Ctrl+V).</li>
-        <li><b>Save చేయండి</b> — Ctrl+S నొక్కండి, ప్రాజెక్ట్‌కి ఏదైనా పేరు పెట్టండి (ఉదా: "Orders Backend").</li>
-        <li><b>Deploy చేయండి</b> — పైన కుడివైపు నీలం <b>Deploy</b> బటన్ → <b>New deployment</b> నొక్కండి. ఎడమవైపు ⚙️ గియర్ ఐకాన్ నొక్కి <b>"Web app"</b> సెలెక్ట్ చేయండి.</li>
-        <li><b>యాక్సెస్ సెట్ చేయండి</b> — "Execute as" → <b>Me</b>, "Who has access" → <b>Anyone</b> సెలెక్ట్ చేసి <b>Deploy</b> నొక్కండి.</li>
-        <li><b>పర్మిషన్ ఇవ్వండి</b> — "Authorize access" వస్తే మీ Google అకౌంట్ సెలెక్ట్ చేయండి. "Google hasn't verified this app" అని వస్తే <b>Advanced → Go to (project name) (unsafe) → Allow</b> నొక్కండి (ఇది మీరే రాసిన కోడ్ కాబట్టి సురక్షితమే).</li>
-        <li><b>URL కాపీ చేయండి</b> — Deploy అయ్యాక వచ్చే <b>Web app URL</b> (ఇది <code>/exec</code> తో ముగుస్తుంది) కాపీ చేసి, పైన "Google Sheet Backend URL" బాక్స్‌లో పేస్ట్ చేసి <b>Save</b> నొక్కండి.</li>
-        <li><b>టెస్ట్ చేయండి</b> — "📥 Customer Order Page Download" తో కస్టమర్ పేజీ డౌన్‌లోడ్ చేసి, ఒక టెస్ట్ ఆర్డర్ పెట్టండి. తర్వాత ఇక్కడ "📋 Orders Dashboard" ట్యాబ్‌లో ఆ ఆర్డర్ కనిపించాలి, మరియు Google Sheet లో "Orders" అనే కొత్త షీట్ ఆటోమేటిక్‌గా క్రియేట్ అయ్యి ఆ డేటా కనిపించాలి.</li>
-        <li><b>కోడ్ మారిస్తే మళ్ళీ Deploy చేయాలి</b> — భవిష్యత్తులో ఈ కోడ్‌ని మీరు మార్చాల్సి వస్తే, Deploy → Manage deployments → ✏️ Edit → కొత్త వెర్షన్ సెలెక్ట్ చేసి మళ్ళీ Deploy నొక్కాలి (URL మారదు).</li>
-        <li><b>ఇప్పటికే deploy చేసినవారు మళ్ళీ update చేయాలి</b> — ఈ కొత్త కోడ్‌లో Catalog auto-sync ఫీచర్ (కొత్త products ఆటోమేటిక్‌గా customer page లో కనపడటం) కూడా ఉంది. మీరు ఇంతకుముందే Deploy చేసి ఉంటే, పైన "📋 Copy Code" నొక్కి ఈ కొత్త కోడ్‌ని పాత దాని స్థానంలో పేస్ట్ చేసి, Deploy → Manage deployments → ✏️ Edit → కొత్త వెర్షన్ సెలెక్ట్ చేసి మళ్ళీ Deploy నొక్కండి (URL మారదు, కొత్తగా ఏమీ చేయనవసరం లేదు).</li>
+        <li><b>Create a Google Sheet</b> — Open <b>sheets.google.com</b>, click "Blank" to make a new spreadsheet. Name it something like "Kavitha Telecom Orders".</li>
+        <li><b>Open Apps Script</b> — Click <b>Extensions → Apps Script</b> in the top menu. A code editor opens in a new tab.</li>
+        <li><b>Remove the old code</b> — Select and delete the default code already there (like <code>function myFunction(){}</code>).</li>
+        <li><b>Paste the new code</b> — Click the "📋 Copy Code" button below, then paste it there (Ctrl+V).</li>
+        <li><b>Save</b> — Press Ctrl+S and give the project any name (e.g. "Orders Backend").</li>
+        <li><b>Deploy</b> — Click the blue <b>Deploy</b> button top-right → <b>New deployment</b>. Click the ⚙️ gear icon on the left and select <b>"Web app"</b>.</li>
+        <li><b>Set access</b> — Set "Execute as" → <b>Me</b>, "Who has access" → <b>Anyone</b>, then click <b>Deploy</b>.</li>
+        <li><b>Grant permission</b> — If "Authorize access" appears, select your Google account. If "Google hasn't verified this app" appears, click <b>Advanced → Go to (project name) (unsafe) → Allow</b> (safe, since it's code you wrote yourself).</li>
+        <li><b>Copy the URL</b> — After deploying, copy the <b>Web app URL</b> (it ends in <code>/exec</code>), paste it in the "Google Sheet Backend URL" box above, and click <b>Save</b>.</li>
+        <li><b>Test it</b> — Download the customer page with "📥 Customer Order Page Download" and place a test order. It should then appear under the "📋 Orders Dashboard" tab here, and a new "Orders" sheet should auto-create in your Google Sheet with that data.</li>
+        <li><b>Redeploy whenever the code changes</b> — If you ever need to change this code in future, go to Deploy → Manage deployments → ✏️ Edit → select a new version and click Deploy again (the URL stays the same).</li>
+        <li><b>Already deployed before? Update again</b> — This new code also includes the Catalog auto-sync feature (new products show up automatically on the customer page). If you deployed earlier, click "📋 Copy Code" above, replace the old code with this new one, then Deploy → Manage deployments → ✏️ Edit → select a new version and Deploy again (URL won't change, nothing else to set up).</li>
       </ol>
       <div class="gascodewrap">
         <button class="gascopybtn" onclick="oc_copyGasCode()">📋 Copy Code</button>
@@ -2934,7 +2934,7 @@ let oc_SYNC_TIMER=null;
 function oc_syncCatalogToBackend(){
   clearTimeout(oc_SYNC_TIMER);
   oc_SYNC_TIMER=setTimeout(async ()=>{
-    if(!oc_CONFIG.scriptUrl) return; // Order Setup లో URL పెట్టేదాకా sync చేయలేం
+    if(!oc_CONFIG.scriptUrl) return; // can't sync until URL is set in Order Setup
     try{
       const data = oc_collectData();
       const res = await fetch(oc_CONFIG.scriptUrl + '?action=saveCatalog', { method:'POST', body: JSON.stringify(data) });
@@ -2942,7 +2942,7 @@ function oc_syncCatalogToBackend(){
       try{ bodyTxt = (await res.text()).slice(0,120); }catch(e2){}
       console.log('[oc_sync] status', res.status, 'body:', bodyTxt);
       if(res.ok && bodyTxt.indexOf('success')!==-1){
-        toast('✅ Catalog సేవ్ అయ్యింది (products: '+data.products.length+')');
+        toast('✅ Catalog saved (products: '+data.products.length+')');
       } else {
         toast('⚠️ Sync response: '+res.status+' — '+bodyTxt);
       }
@@ -2954,37 +2954,37 @@ function oc_syncCatalogToBackend(){
 }
 async function oc_manualSync(){
   if(!oc_CONFIG.scriptUrl){
-    alert('⚠️ ముందు ⚙️ Order Setup లో Google Sheet Backend URL పెట్టండి!');
+    alert('⚠️ Please set the Google Sheet Backend URL in ⚙️ Order Setup first!');
     return;
   }
   try{
     const data = oc_collectData();
-    alert('🔄 Sync మొదలైంది... products: '+data.products.length+'\\nURL: '+oc_CONFIG.scriptUrl);
+    alert('🔄 Sync started... products: '+data.products.length+'\\nURL: '+oc_CONFIG.scriptUrl);
     const res = await fetch(oc_CONFIG.scriptUrl + '?action=saveCatalog', { method:'POST', body: JSON.stringify(data) });
     let bodyTxt = '';
-    try{ bodyTxt = await res.text(); }catch(e2){ bodyTxt = '(response చదవలేకపోయాము)'; }
-    alert('సర్వర్ జవాబు:\\nStatus: '+res.status+' '+res.statusText+'\\nBody: '+bodyTxt.slice(0,300));
+    try{ bodyTxt = await res.text(); }catch(e2){ bodyTxt = '(could not read response)'; }
+    alert('Server response:\\nStatus: '+res.status+' '+res.statusText+'\\nBody: '+bodyTxt.slice(0,300));
   }catch(e){
-    alert('❌ Sync FAILED (నెట్‌వర్క్/CORS ఎర్రర్):\\n'+(e && e.message ? e.message : e));
+    alert('❌ Sync FAILED (network/CORS error):\\n'+(e && e.message ? e.message : e));
   }
 }
 async function oc_checkBackendVersion(){
   const el = document.getElementById('backendVersionResult');
   const url = document.getElementById('scriptUrl').value.trim();
-  if(!url){ el.textContent = '⚠️ ముందు పైన URL పెట్టండి'; return; }
-  el.textContent = '⏳ చెక్ చేస్తోంది...';
+  if(!url){ el.textContent = '⚠️ Please set the URL above first'; return; }
+  el.textContent = '⏳ Checking...';
   try{
     const res = await fetch(url + '?action=ping');
     const txt = await res.text();
     let parsed = null;
     try{ parsed = JSON.parse(txt); }catch(e3){}
     if(parsed && parsed.version){
-      el.innerHTML = '✅ బ్యాకెండ్ లైవ్‌లో ఉంది<br>Version: <b>'+parsed.version+'</b><br>Server time: '+parsed.time;
+      el.innerHTML = '✅ Backend is live<br>Version: <b>'+parsed.version+'</b><br>Server time: '+parsed.time;
     } else {
-      el.innerHTML = '⚠️ పాత బ్యాకెండ్ కోడ్ (version check లేదు) — status '+res.status+'<br>Body: '+txt.slice(0,150);
+      el.innerHTML = '⚠️ Old backend code (no version check) — status '+res.status+'<br>Body: '+txt.slice(0,150);
     }
   }catch(e){
-    el.textContent = '❌ చెక్ కాలేదు: '+(e && e.message ? e.message : e);
+    el.textContent = '❌ Check failed: '+(e && e.message ? e.message : e);
   }
 }
 
@@ -3141,14 +3141,42 @@ const oc_defaultCards = [
   {title:"POWER BANKS", off:"25", mrp:"1299", offer:"949", category:"Power Banks"},
 ];
 
+const oc_PRESET_CATEGORIES = ["Phone Accessories","Audio & Earbuds","Cables & Chargers","Power Banks","Screen Guards","Other"];
+function oc_categoryOptionsHtml(selected){
+  const sel = (selected||'').trim();
+  const list = [...oc_PRESET_CATEGORIES];
+  if(sel && !list.includes(sel)) list.push(sel);
+  let html = list.map(c=>`<option value="${c}"${c===sel?' selected':''}>${c}</option>`).join('');
+  html += `<option value="__addnew__">➕ Add New Category</option>`;
+  return html;
+}
+function oc_handleCategoryChange(selectEl){
+  if(selectEl.value === '__addnew__'){
+    const name = prompt('New category name:');
+    if(name && name.trim()){
+      const clean = name.trim();
+      document.querySelectorAll('.card-cat').forEach(sel=>{
+        if(![...sel.options].some(o=>o.value===clean)){
+          const opt = document.createElement('option');
+          opt.value = clean; opt.textContent = clean;
+          sel.insertBefore(opt, sel.querySelector('option[value="__addnew__"]'));
+        }
+      });
+      selectEl.value = clean;
+    } else {
+      selectEl.value = oc_PRESET_CATEGORIES[0];
+    }
+  }
+  oc_syncCatalogToBackend();
+}
 function oc_cardTemplate(d){
   return `<div class="card">
     <button class="card-del" onclick="this.closest('.card').remove()">✕</button>
     <div class="card-edit-hint">✏️</div>
-    <div class="card-cat editable" contenteditable="true" data-ph="కేటగిరీ పెట్టండి">${d.category||''}</div>
+    <select class="card-cat" onchange="oc_handleCategoryChange(this)">${oc_categoryOptionsHtml(d.category)}</select>
     <div class="card-head editable" contenteditable="true">${d.title}</div>
     <div class="card-img" onclick="oc_triggerImg(this)">
-      <span class="ph">🖼️ ఫోటో పెట్టండి</span>
+      <span class="ph">🖼️ Add photo</span>
       <img>
       <input type="file" accept="image/*" style="display:none" onchange="oc_handleImage(event,this.previousElementSibling,this.parentElement)">
       <div class="badge"><span class="editable" contenteditable="true">${d.off}</span>%<br>OFF</div>
@@ -3165,10 +3193,10 @@ function oc_triggerImg(el){ el.querySelector('input[type=file]').click(); }
 function oc_renderDefault(){ document.getElementById('grid').innerHTML = oc_defaultCards.map(oc_cardTemplate).join(''); }
 function oc_sortGridByCategory(){
   const data = oc_collectData();
-  if(!data.products.length){ toast('ముందు products యాడ్ చేయండి'); return; }
+  if(!data.products.length){ toast('Please add products first'); return; }
   const grouped = {};
   data.products.forEach(p=>{
-    const cat = (p.category||'ఇతరాలు').trim() || 'ఇతరాలు';
+    const cat = (p.category||'Other').trim() || 'Other';
     (grouped[cat] = grouped[cat] || []).push(p);
   });
   const cats = Object.keys(grouped).sort((a,b)=>a.localeCompare(b,'te'));
@@ -3179,7 +3207,7 @@ function oc_sortGridByCategory(){
     html += grouped[cat].map(oc_cardTemplate).join('');
   });
   grid.innerHTML = html;
-  toast('కేటగిరీల ప్రకారం సర్దారు ✓');
+  toast('Sorted by category ✓');
   oc_syncCatalogToBackend();
 }
 
@@ -3213,9 +3241,9 @@ function oc_openSettings(){
 function oc_closeSettings(){ document.getElementById('settingsModal').classList.remove('open'); }
 function oc_copyGasCode(){
   navigator.clipboard.writeText(oc_gasCode).then(()=>{
-    toast('Code copied ✓ — Apps Script editor లో పేస్ట్ చేయండి');
+    toast('Code copied ✓ — paste it in the Apps Script editor');
   }).catch(()=>{
-    alert('Copy చేయలేకపోయాము — కోడ్ బాక్స్ లో మాన్యువల్‌గా select చేసి Ctrl+C నొక్కండి');
+    alert('Could not copy — select the code manually in the box and press Ctrl+C');
   });
 }
 function oc_saveSettings(){
@@ -3273,15 +3301,15 @@ function oc_renderReport(){
   const deletedCount = inRange.length - active.length;
   const totalRs = active.reduce((a,b)=>a+(Number(b.total)||0),0);
   document.getElementById('rstats').innerHTML = `
-    <div class="dstat"><div class="n">${inRange.length}</div><div class="l">మొత్తం ఆర్డర్లు</div></div>
+    <div class="dstat"><div class="n">${inRange.length}</div><div class="l">Total Orders</div></div>
     <div class="dstat"><div class="n">${pending}</div><div class="l">Pending</div></div>
     <div class="dstat"><div class="n">${completed}</div><div class="l">Completed</div></div>
-    <div class="dstat"><div class="n">₹${totalRs}</div><div class="l">మొత్తం Value</div></div>
+    <div class="dstat"><div class="n">₹${totalRs}</div><div class="l">Total Value</div></div>
     <div class="dstat"><div class="n">${deletedCount}</div><div class="l">Deleted</div></div>
   `;
   const list = document.getElementById('rlist');
   if(inRange.length===0){
-    list.innerHTML = '<div class="dempty"><div class="big">📭</div>ఈ కాలంలో ఆర్డర్లు లేవు</div>';
+    list.innerHTML = '<div class="dempty"><div class="big">📭</div>No orders in this period</div>';
     return;
   }
   list.innerHTML = [...inRange].sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)).map(o=>{
@@ -3302,7 +3330,7 @@ function oc_renderReport(){
   }).join('');
 }
 function oc_downloadReportPDF(){
-  if(!window.jspdf){ alert('PDF library లోడ్ కాలేదు, ఇంటర్నెట్ కనెక్షన్ చెక్ చేసి మళ్ళీ ప్రయత్నించండి'); return; }
+  if(!window.jspdf){ alert('PDF library did not load, check your internet connection and try again'); return; }
   const {jsPDF} = window.jspdf;
   const doc = new jsPDF();
   const {from, to} = oc_getReportRangeBounds(oc_REPORT_RANGE);
@@ -3385,12 +3413,12 @@ function oc_notifyNewOrder(order){
   oc_beep();
   if('Notification' in window && Notification.permission === 'granted'){
     try{
-      new Notification('🛒 కొత్త ఆర్డర్ వచ్చింది!', {
+      new Notification('🛒 New order received!', {
         body: (order.customerName||'Customer') + ' — ₹' + order.total,
       });
     }catch(e){}
   }
-  document.title = '🔔 కొత్త ఆర్డర్! — Orders Dashboard';
+  document.title = '🔔 New Order! — Orders Dashboard';
   setTimeout(()=>{ document.title = 'Order Catalog Editor'; }, 6000);
 }
 
@@ -3403,7 +3431,7 @@ function oc_setDashFilter(f, btn){
 
 async function oc_loadOrders(){
   if(!oc_CONFIG.scriptUrl){
-    document.getElementById('dlist').innerHTML = '<div class="dempty"><div class="big">⚠️</div>ముందు ⚙️ Order Setup లో Google Sheet URL పెట్టండి</div>';
+    document.getElementById('dlist').innerHTML = '<div class="dempty"><div class="big">⚠️</div>Please set the Google Sheet URL in ⚙️ Order Setup first</div>';
     return;
   }
   document.getElementById('dlist').innerHTML = '<div class="dloading">⏳ Loading...</div>';
@@ -3424,7 +3452,7 @@ async function oc_loadOrders(){
     oc_ORDERS = newOrders;
     oc_renderDashboard();
   }catch(e){
-    document.getElementById('dlist').innerHTML = '<div class="dempty"><div class="big">⚠️</div>Orders load కాలేదు. కొంచెం సేపు తర్వాత 🔄 Refresh నొక్కండి.</div>';
+    document.getElementById('dlist').innerHTML = '<div class="dempty"><div class="big">⚠️</div>Orders did not load. Wait a moment and click 🔄 Refresh.</div>';
   }
 }
 
@@ -3436,10 +3464,10 @@ function oc_renderDashboard(){
   const deletedCount = oc_ORDERS.filter(o=>o.status==='Deleted').length;
   const totalRs = active.reduce((a,b)=>a+(Number(b.total)||0),0);
   stats.innerHTML = `
-    <div class="dstat"><div class="n">${active.length}</div><div class="l">మొత్తం ఆర్డర్లు</div></div>
+    <div class="dstat"><div class="n">${active.length}</div><div class="l">Total Orders</div></div>
     <div class="dstat"><div class="n">${pending}</div><div class="l">Pending</div></div>
     <div class="dstat"><div class="n">${completed}</div><div class="l">Completed</div></div>
-    <div class="dstat"><div class="n">₹${totalRs}</div><div class="l">మొత్తం Value</div></div>
+    <div class="dstat"><div class="n">₹${totalRs}</div><div class="l">Total Value</div></div>
   `;
   let shown;
   if(oc_DASH_FILTER==='all') shown = active;
@@ -3449,8 +3477,8 @@ function oc_renderDashboard(){
   const list = document.getElementById('dlist');
   if(shown.length===0){
     list.innerHTML = oc_DASH_FILTER==='Deleted'
-      ? '<div class="dempty"><div class="big">🗑️</div>Deleted ఆర్డర్లు ఏవీ లేవు</div>'
-      : '<div class="dempty"><div class="big">📭</div>ఇంకా ఆర్డర్లు రాలేదు</div>';
+      ? '<div class="dempty"><div class="big">🗑️</div>No deleted orders</div>'
+      : '<div class="dempty"><div class="big">📭</div>No orders yet</div>';
     return;
   }
   list.innerHTML = shown.map(o=>{
@@ -3474,7 +3502,7 @@ function oc_renderDashboard(){
         <div style="display:flex; gap:6px; flex-wrap:wrap;">
           ${isDeleted
             ? `<button class="dtogglebtn" onclick="oc_restoreOrder('${o.orderId}')">♻️ Restore</button>`
-            : `<button class="dtogglebtn" onclick="oc_toggleOrderStatus('${o.orderId}','${isDone?'Pending':'Completed'}')">${isDone ? 'Pending కి మార్చు' : '✅ Complete చేయండి'}</button>
+            : `<button class="dtogglebtn" onclick="oc_toggleOrderStatus('${o.orderId}','${isDone?'Pending':'Completed'}')">${isDone ? 'Mark as Pending' : '✅ Mark Complete'}</button>
                <button class="dtogglebtn" style="background:#fff;color:var(--maroon);" onclick="oc_printOrder('${o.orderId}')">🖨️ Print</button>
                <button class="dtogglebtn" style="background:#fff0f0;color:#c0392b;border-color:#e8b4b4;" onclick="oc_deleteOrder('${o.orderId}')">🗑️ Delete</button>`
           }
@@ -3490,10 +3518,10 @@ async function oc_toggleOrderStatus(orderId, newStatus){
     const o = oc_ORDERS.find(x=>x.orderId===orderId);
     if(o) o.status = newStatus;
     oc_renderDashboard();
-  }catch(e){ alert('Status update కాలేదు, మళ్ళీ ప్రయత్నించండి'); }
+  }catch(e){ alert('Status update failed, please try again'); }
 }
 async function oc_deleteOrder(orderId){
-  if(!confirm('ఈ ఆర్డర్ ని శాశ్వతంగా (permanently) delete చేయాలా? ఇది ఇక ఎప్పటికీ వెనక్కి రాదు.')) return;
+  if(!confirm('Permanently delete this order? This cannot be undone.')) return;
   try{
     const res = await fetch(oc_CONFIG.scriptUrl + '?action=deleteOrder&orderId=' + encodeURIComponent(orderId));
     const txt = await res.text();
@@ -3501,18 +3529,18 @@ async function oc_deleteOrder(orderId){
     if(res.ok && parsed && parsed.success){
       oc_ORDERS = oc_ORDERS.filter(x=>x.orderId!==orderId);
       oc_renderDashboard();
-      toast('ఆర్డర్ శాశ్వతంగా తీసివేయబడింది ✓');
-      oc_loadOrders(); // server నుండి మళ్ళీ లోడ్ చేసి నిర్ధారించుకోవడం
+      toast('Order permanently deleted ✓');
+      oc_loadOrders(); // reload from server to confirm
     } else {
-      alert('⚠️ Delete server లో జరగలేదు.\nStatus: '+res.status+'\nBody: '+txt.slice(0,200)+'\n\nApps Script లో "deleteOrder" action ఉందో లేదో, మీరు కొత్త కోడ్ Deploy చేశారో లేదో చెక్ చేయండి.');
+      alert('⚠️ Delete did not happen on the server.\nStatus: '+res.status+'\nBody: '+txt.slice(0,200)+'\n\nCheck whether the "deleteOrder" action exists in Apps Script, and whether you deployed the new code.');
     }
-  }catch(e){ alert('❌ Delete కాలేదు (నెట్‌వర్క్ ఎర్రర్): '+(e&&e.message?e.message:e)); }
+  }catch(e){ alert('❌ Delete failed (network error): '+(e&&e.message?e.message:e)); }
 }
 async function oc_restoreOrder(orderId){
   await oc_toggleOrderStatus(orderId, 'Pending');
 }
 async function oc_clearAllOrders(){
-  if(!confirm('ప్రస్తుతం ఉన్న ఆర్డర్లు అన్నీ (ఈ Sheet లో ఉన్నవి) శాశ్వతంగా delete చేయాలా? ఇది వెనక్కి తీసుకోలేము.')) return;
+  if(!confirm('Permanently delete ALL current orders (in this Sheet)? This cannot be undone.')) return;
   try{
     const res = await fetch(oc_CONFIG.scriptUrl + '?action=clearAllOrders');
     const txt = await res.text();
@@ -3520,16 +3548,16 @@ async function oc_clearAllOrders(){
     if(res.ok && parsed && parsed.success){
       oc_ORDERS = [];
       oc_renderDashboard();
-      toast('అన్ని పాత ఆర్డర్లు తీసివేయబడ్డాయి ✓');
+      toast('All old orders removed ✓');
       oc_loadOrders();
     } else {
-      alert('⚠️ Clear server లో జరగలేదు.\nStatus: '+res.status+'\nBody: '+txt.slice(0,200));
+      alert('⚠️ Clear did not happen on the server.\nStatus: '+res.status+'\nBody: '+txt.slice(0,200));
     }
-  }catch(e){ alert('❌ Clear కాలేదు (నెట్‌వర్క్ ఎర్రర్): '+(e&&e.message?e.message:e)); }
+  }catch(e){ alert('❌ Clear failed (network error): '+(e&&e.message?e.message:e)); }
 }
 function oc_printOrder(orderId){
   const o = oc_ORDERS.find(x=>x.orderId===orderId);
-  if(!o){ alert('Order దొరకలేదు'); return; }
+  if(!o){ alert('Order not found'); return; }
 
   // Parse "Name xQty (₹Price each); Name2 xQty2 (₹Price2 each)" into structured rows
   const rows = String(o.items||'').split(';').map(seg=>seg.trim()).filter(Boolean).map(seg=>{
@@ -3587,7 +3615,7 @@ function oc_printOrder(orderId){
         <tfoot><tr class="bill-total-row"><td colspan="3">Total</td><td class="num">₹${o.total}</td></tr></tfoot>
       </table>
       <div class="bill-status">${o.status==='Completed'?'✅ COMPLETED':'🕒 PENDING'}</div>
-      <div class="bill-foot">Thank you! Again visit చేయండి 🙏</div>
+      <div class="bill-foot">Thank you! Please visit again 🙏</div>
     </div>
     <script>window.onload=function(){ window.print(); }<\/script>
   </body></html>`);
@@ -3606,7 +3634,7 @@ function oc_collectData(){
     return {
       id: 'P'+i,
       title: card.querySelector('.card-head').innerText.trim(),
-      category: (card.querySelector('.card-cat').innerText||'').trim() || 'ఇతరాలు',
+      category: (card.querySelector('.card-cat').value||'').trim() || 'Other',
       img: (img && img.src && img.src.startsWith('data:')) ? img.src : '',
       off: card.querySelector('.badge .editable').innerText.trim(),
       mrp: card.querySelector('.mrp-value').innerText.trim(),
@@ -3628,7 +3656,7 @@ function oc_collectData(){
 
 function oc_generateCustomerPage(){
   if(!oc_CONFIG.scriptUrl){
-    alert('⚠️ ముందు ⚙️ Order Setup లో Google Sheet Backend URL పెట్టండి!');
+    alert('⚠️ Please set the Google Sheet Backend URL in ⚙️ Order Setup first!');
     oc_openSettings();
     return;
   }
@@ -3650,7 +3678,7 @@ function oc_generateCustomerPage(){
     swLink.href = URL.createObjectURL(swBlob);
     swLink.download = 'customer-sw.js';
     swLink.click();
-    toast('2 ఫైల్స్ డౌన్‌లోడ్ అయ్యాయి — రెండూ ఒకే folder లో host చేయండి');
+    toast('2 files downloaded — host both in the same folder');
   }, 600);
 }
 
@@ -3812,7 +3840,7 @@ ${data.logo? `<link rel="icon" href="${data.logo}"><link rel="apple-touch-icon" 
         <tbody id="billItems"></tbody>
         <tfoot><tr class="bill-total-row"><td colspan="3">Total</td><td class="num" id="billTotal">₹0</td></tr></tfoot>
       </table>
-      <div class="bill-foot">Thank you! Again visit చేయండి 🙏</div>
+      <div class="bill-foot">Thank you! Please visit again 🙏</div>
     </div>
     <button class="printbtn" onclick="window.print()">🖨️ Bill Print చేయండి</button>
     <button class="printbtn" id="waShareBtn" style="background:#25D366;" onclick="oc_shareBillToWhatsApp()">📤 Bill ని WhatsApp కి పంపండి</button>
