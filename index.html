@@ -3471,11 +3471,18 @@ async function oc_toggleOrderStatus(orderId, newStatus){
 async function oc_deleteOrder(orderId){
   if(!confirm('ఈ ఆర్డర్ ని శాశ్వతంగా (permanently) delete చేయాలా? ఇది ఇక ఎప్పటికీ వెనక్కి రాదు.')) return;
   try{
-    await fetch(oc_CONFIG.scriptUrl + '?action=deleteOrder&orderId=' + encodeURIComponent(orderId));
-    oc_ORDERS = oc_ORDERS.filter(x=>x.orderId!==orderId);
-    oc_renderDashboard();
-    toast('ఆర్డర్ శాశ్వతంగా తీసివేయబడింది ✓');
-  }catch(e){ alert('Delete కాలేదు, మళ్ళీ ప్రయత్నించండి'); }
+    const res = await fetch(oc_CONFIG.scriptUrl + '?action=deleteOrder&orderId=' + encodeURIComponent(orderId));
+    const txt = await res.text();
+    let parsed = null; try{ parsed = JSON.parse(txt); }catch(e2){}
+    if(res.ok && parsed && parsed.success){
+      oc_ORDERS = oc_ORDERS.filter(x=>x.orderId!==orderId);
+      oc_renderDashboard();
+      toast('ఆర్డర్ శాశ్వతంగా తీసివేయబడింది ✓');
+      oc_loadOrders(); // server నుండి మళ్ళీ లోడ్ చేసి నిర్ధారించుకోవడం
+    } else {
+      alert('⚠️ Delete server లో జరగలేదు.\nStatus: '+res.status+'\nBody: '+txt.slice(0,200)+'\n\nApps Script లో "deleteOrder" action ఉందో లేదో, మీరు కొత్త కోడ్ Deploy చేశారో లేదో చెక్ చేయండి.');
+    }
+  }catch(e){ alert('❌ Delete కాలేదు (నెట్‌వర్క్ ఎర్రర్): '+(e&&e.message?e.message:e)); }
 }
 async function oc_restoreOrder(orderId){
   await oc_toggleOrderStatus(orderId, 'Pending');
@@ -3483,11 +3490,18 @@ async function oc_restoreOrder(orderId){
 async function oc_clearAllOrders(){
   if(!confirm('ప్రస్తుతం ఉన్న ఆర్డర్లు అన్నీ (ఈ Sheet లో ఉన్నవి) శాశ్వతంగా delete చేయాలా? ఇది వెనక్కి తీసుకోలేము.')) return;
   try{
-    await fetch(oc_CONFIG.scriptUrl + '?action=clearAllOrders');
-    oc_ORDERS = [];
-    oc_renderDashboard();
-    toast('అన్ని పాత ఆర్డర్లు తీసివేయబడ్డాయి ✓');
-  }catch(e){ alert('Clear కాలేదు, మళ్ళీ ప్రయత్నించండి'); }
+    const res = await fetch(oc_CONFIG.scriptUrl + '?action=clearAllOrders');
+    const txt = await res.text();
+    let parsed = null; try{ parsed = JSON.parse(txt); }catch(e2){}
+    if(res.ok && parsed && parsed.success){
+      oc_ORDERS = [];
+      oc_renderDashboard();
+      toast('అన్ని పాత ఆర్డర్లు తీసివేయబడ్డాయి ✓');
+      oc_loadOrders();
+    } else {
+      alert('⚠️ Clear server లో జరగలేదు.\nStatus: '+res.status+'\nBody: '+txt.slice(0,200));
+    }
+  }catch(e){ alert('❌ Clear కాలేదు (నెట్‌వర్క్ ఎర్రర్): '+(e&&e.message?e.message:e)); }
 }
 function oc_printOrder(orderId){
   const o = oc_ORDERS.find(x=>x.orderId===orderId);
