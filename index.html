@@ -649,7 +649,7 @@ const MADS_ITEMS=[
 function renderMads(){
   return `
   <div class="madsintro" style="background:#fff; border-radius:14px; padding:12px 14px; margin-bottom:14px; font-size:12.5px; color:var(--muted); box-shadow:var(--shadow);">
-    📣 ఇక్కడ మీ షాప్ మార్కెటింగ్ మెటీరియల్ (బోర్డు, బ్రోచర్, విజిటింగ్ కార్డ్, ప్రకటన ఆడియో) ఒక్కసారి అప్‌లోడ్ చేసి పెట్టుకోండి — ఎప్పుడైనా తెరిచి, తిరిగి Download చేసుకోవచ్చు.
+    📣 Upload your shop marketing material here once (board, brochure, visiting card, ad audio) — open and Download it again anytime.
   </div>
   ${MADS_ITEMS.map(it=>madsCardHTML(it)).join('')}
   `;
@@ -661,11 +661,11 @@ function madsCardHTML(it){
   if(it.kind==='image'){
     body = val
       ? `<div class="madspreview"><img src="${val}"></div>`
-      : `<div class="madspreview"><div class="madsempty">ఇంకా ఏమీ అప్‌లోడ్ కాలేదు<br>📤 కింద బటన్ నొక్కి ఫోటో ఎంచుకోండి</div></div>`;
+      : `<div class="madspreview"><div class="madsempty">Nothing uploaded yet<br>📤 Tap the button below to choose a photo</div></div>`;
   } else {
     body = val
       ? `<audio controls src="${val}"></audio>`
-      : `<div class="madspreview"><div class="madsempty">ఇంకా ఆడియో అప్‌లోడ్ కాలేదు<br>📤 కింద బటన్ నొక్కి ఆడియో ఫైల్ ఎంచుకోండి</div></div>`;
+      : `<div class="madspreview"><div class="madsempty">No audio uploaded yet<br>📤 Tap the button below to choose an audio file</div></div>`;
   }
   const accept = it.kind==='image' ? 'image/*' : 'audio/*';
   const changeFn = it.kind==='image' ? `madsUploadImage('${it.key}',this)` : `madsUploadAudio('${it.key}',this)`;
@@ -676,7 +676,7 @@ function madsCardHTML(it){
     ${body}
     <div class="madsrow">
       <input type="file" id="${inputId}" accept="${accept}" style="display:none" onchange="${changeFn}">
-      <button class="madsbtn upload" onclick="document.getElementById('${inputId}').click()">📤 ${val?'మార్చండి':'అప్‌లోడ్ చేయండి'}</button>
+      <button class="madsbtn upload" onclick="document.getElementById('${inputId}').click()">📤 ${val?'Change':'Upload'}</button>
       ${val? `<button class="madsbtn download" onclick="madsDownload('${it.key}')">⬇️ Download</button>` : ''}
       ${val? `<button class="madsbtn remove" onclick="madsRemove('${it.key}')">✕</button>` : ''}
     </div>
@@ -687,14 +687,14 @@ async function madsUploadImage(key, inputEl){
   try{
     const dataUrl=await compressImage(file, 1400, 0.85);
     await saveSetting(key, dataUrl);
-    toast('అప్‌లోడ్ అయ్యింది ✓');
+    toast('Uploaded ✓');
     render();
-  }catch(e){ toast('అప్‌లోడ్ కాలేదు, మళ్ళీ ప్రయత్నించండి'); }
+  }catch(e){ toast('Upload failed, please try again'); }
   inputEl.value='';
 }
 async function madsUploadAudio(key, inputEl){
   const file=inputEl.files[0]; if(!file) return;
-  if(file.size > 15*1024*1024){ toast('ఆడియో ఫైల్ చాలా పెద్దది (15MB లోపు ఉండాలి)'); return; }
+  if(file.size > 15*1024*1024){ toast('Audio file is too large (must be under 15MB)'); return; }
   try{
     const dataUrl=await new Promise((resolve,reject)=>{
       const reader=new FileReader();
@@ -703,9 +703,9 @@ async function madsUploadAudio(key, inputEl){
       reader.readAsDataURL(file);
     });
     await saveSetting(key, dataUrl);
-    toast('ఆడియో అప్‌లోడ్ అయ్యింది ✓');
+    toast('Audio uploaded ✓');
     render();
-  }catch(e){ toast('అప్‌లోడ్ కాలేదు, మళ్ళీ ప్రయత్నించండి'); }
+  }catch(e){ toast('Upload failed, please try again'); }
   inputEl.value='';
 }
 function madsExtFromDataUrl(dataUrl){
@@ -724,9 +724,9 @@ function madsDownload(key){
   document.body.appendChild(a); a.click(); a.remove();
 }
 async function madsRemove(key){
-  if(!confirm('దీన్ని తీసివేయాలా?')) return;
+  if(!confirm('Remove this?')) return;
   await saveSetting(key, '');
-  toast('తీసివేయబడింది');
+  toast('Removed');
   render();
 }
 
@@ -3791,29 +3791,29 @@ ${data.logo? `<link rel="icon" href="${data.logo}"><link rel="apple-touch-icon" 
     <div class="addr">📍 ${oc_escHtml(data.shopAddr)} &nbsp; 📞 ${oc_escHtml(data.shopPhone)}</div>
   </div>
 </div>
-<div class="installbar" id="installBar">📲 ఈ యాప్ ని మీ ఫోన్‌లో ఇన్‌స్టాల్ చేసుకోండి! <button onclick="oc_installApp()">Install చేయండి</button></div>
-<div class="band">🛒 Product మీద Qty పెట్టి ఆర్డర్ చేయండి</div>
+<div class="installbar" id="installBar">📲 Install this app on your phone! <button onclick="oc_installApp()">Install</button></div>
+<div class="band">🛒 Set Qty on a product to order it</div>
 <div class="grid" id="grid"></div>
 <div class="footnote">${oc_escHtml(data.footerNote)}</div>
 
 <div class="cartbar" id="cartbar">
   <div>🛒 <b id="cartCount">0</b> items — ₹<b id="cartTotal">0</b></div>
-  <button onclick="oc_openCheckout()">Order Place చేయండి</button>
+  <button onclick="oc_openCheckout()">Place Order</button>
 </div>
 
 <div class="modalbg" id="checkoutModal">
   <div class="modal">
     <button class="closex" onclick="oc_closeCheckout()">✕</button>
-    <h3>మీ ఆర్డర్</h3>
+    <h3>Your Order</h3>
     <div id="cartList"></div>
     <div style="text-align:right;font-weight:800;margin-top:10px;">Total: ₹<span id="modalTotal">0</span></div>
-    <label>మీ పేరు *</label>
-    <input id="custName" placeholder="పేరు రాయండి">
-    <label>ఫోన్ నంబర్ *</label>
+    <label>Your Name *</label>
+    <input id="custName" placeholder="Enter your name">
+    <label>Phone Number *</label>
     <input id="custPhone" placeholder="10 digit number" maxlength="10">
-    <label>పూర్తి చిరునామా (Full Address) *</label>
-    <textarea id="custAddr" placeholder="ఇంటి నెంబర్, వీధి, ఊరు, పిన్‌కోడ్" rows="3" style="width:100%;padding:10px;border:1.5px solid #ddd;border-radius:8px;margin-top:6px;font-size:13px;font-family:inherit;resize:vertical;"></textarea>
-    <button class="placebtn" onclick="oc_placeOrder()">✅ Order Confirm చేయండి</button>
+    <label>Full Address *</label>
+    <textarea id="custAddr" placeholder="House no., street, town, pincode" rows="3" style="width:100%;padding:10px;border:1.5px solid #ddd;border-radius:8px;margin-top:6px;font-size:13px;font-family:inherit;resize:vertical;"></textarea>
+    <button class="placebtn" onclick="oc_placeOrder()">✅ Confirm Order</button>
   </div>
 </div>
 
@@ -3826,7 +3826,7 @@ ${data.logo? `<link rel="icon" href="${data.logo}"><link rel="apple-touch-icon" 
   <div class="modal thanks">
     <button class="closex" onclick="document.getElementById('thanksModal').classList.remove('open')">✕</button>
     <div class="big">🎉</div>
-    <h3 style="margin:2px 0 8px;">ఆర్డర్ Place అయ్యింది!</h3>
+    <h3 style="margin:2px 0 8px;">Order Placed!</h3>
     <div class="bill" id="billArea">
       ${data.logo ? `<div style="text-align:center;margin-bottom:6px;"><img src="${data.logo}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;"></div>` : ''}
       <div class="bill-shop">${oc_escHtml(data.shopName)} ${oc_escHtml(data.shopTag)}</div>
@@ -3842,9 +3842,9 @@ ${data.logo? `<link rel="icon" href="${data.logo}"><link rel="apple-touch-icon" 
       </table>
       <div class="bill-foot">Thank you! Please visit again 🙏</div>
     </div>
-    <button class="printbtn" onclick="window.print()">🖨️ Bill Print చేయండి</button>
-    <button class="printbtn" id="waShareBtn" style="background:#25D366;" onclick="oc_shareBillToWhatsApp()">📤 Bill ని WhatsApp కి పంపండి</button>
-    <button class="placebtn" onclick="document.getElementById('thanksModal').classList.remove('open')">సరే, మూసేయండి</button>
+    <button class="printbtn" onclick="window.print()">🖨️ Print Bill</button>
+    <button class="printbtn" id="waShareBtn" style="background:#25D366;" onclick="oc_shareBillToWhatsApp()">📤 Share Bill on WhatsApp</button>
+    <button class="placebtn" onclick="document.getElementById('thanksModal').classList.remove('open')">OK, Close</button>
   </div>
 </div>
 
@@ -3862,7 +3862,7 @@ async function oc_refreshCatalog(){
       if(typeof fresh.offerMode === 'boolean') DATA.offerMode = fresh.offerMode;
       oc_render();
     }
-  }catch(e){ /* ఆఫ్‌లైన్ లేదా ఇంకా సెటప్ కాలేదు — ఇప్పటికే save అయిన products చూపిస్తూనే ఉంటుంది */ }
+  }catch(e){ /* offline or not set up yet — keeps showing the already-saved products */ }
 }
 
 function oc_escHtml(s){ return String(s||''); }
@@ -3872,7 +3872,7 @@ function oc_render(){
   if(DATA.offerMode===false) grid.classList.add('mrponly');
   const grouped = {};
   DATA.products.forEach(p=>{
-    const cat = (p.category||'').trim() || 'ఇతర ఉత్పత్తులు';
+    const cat = (p.category||'').trim() || 'Other Products';
     (grouped[cat] = grouped[cat] || []).push(p);
   });
   const cats = Object.keys(grouped).sort((a,b)=>a.localeCompare(b,'te'));
@@ -3932,7 +3932,7 @@ window.addEventListener('appinstalled', ()=>{
 });
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{
-    navigator.serviceWorker.register('./customer-sw.js').catch(()=>{ /* ఫైల్ లేకపోతే — page ఇలాగే పని చేస్తుంది, install ఫీచర్ మాత్రం రాదు */ });
+    navigator.serviceWorker.register('./customer-sw.js').catch(()=>{ /* if the file is missing, the page still works, just without the install feature */ });
   });
 }
 
@@ -3969,10 +3969,10 @@ async function oc_placeOrder(){
   const name = document.getElementById('custName').value.trim();
   const phone = document.getElementById('custPhone').value.trim();
   const address = document.getElementById('custAddr').value.trim();
-  if(!name || phone.length<10){ alert('దయచేసి పేరు మరియు సరైన ఫోన్ నంబర్ ఇవ్వండి'); return; }
-  if(!address){ alert('దయచేసి మీ పూర్తి చిరునామా ఇవ్వండి'); return; }
+  if(!name || phone.length<10){ alert('Please enter your name and a valid phone number'); return; }
+  if(!address){ alert('Please enter your full address'); return; }
   const items = Object.values(cart);
-  if(items.length===0){ alert('Cart ఖాళీగా ఉంది'); return; }
+  if(items.length===0){ alert('Cart is empty'); return; }
   const itemsStr = items.map(i=>\`\${i.title} x\${i.qty} (₹\${i.price} each)\`).join('; ');
   const total = items.reduce((a,b)=>a+b.qty*b.price,0);
 
@@ -4010,7 +4010,7 @@ function oc_shareBillToWhatsApp(){
       const file = new File([blob], 'order-bill.png', {type:'image/png'});
       if(navigator.canShare && navigator.canShare({files:[file]})){
         try{
-          await navigator.share({files:[file], title:'Order Bill', text:'నా ఆర్డర్ బిల్ 🧾'});
+          await navigator.share({files:[file], title:'Order Bill', text:'My order bill 🧾'});
           return;
         }catch(e){ /* user cancelled, fall through to download fallback */ }
       }
@@ -4018,9 +4018,9 @@ function oc_shareBillToWhatsApp(){
       link.download = 'order-bill.png';
       link.href = URL.createObjectURL(blob);
       link.click();
-      alert('📥 Bill image download అయ్యింది. ఇప్పుడు WhatsApp open అవుతుంది — దయచేసి ఆ image ని manually attach చేసి పంపండి.');
+      alert('📥 Bill image downloaded. WhatsApp will now open — please attach that image manually and send it.');
       if(DATA.waNumber){
-        setTimeout(()=>{ window.open('https://wa.me/'+DATA.waNumber+'?text='+encodeURIComponent('నా ఆర్డర్ బిల్ పంపుతున్నాను 🧾'), '_blank'); }, 400);
+        setTimeout(()=>{ window.open('https://wa.me/'+DATA.waNumber+'?text='+encodeURIComponent('Sending my order bill 🧾'), '_blank'); }, 400);
       }
     }, 'image/png');
   });
