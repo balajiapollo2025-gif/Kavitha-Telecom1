@@ -412,6 +412,7 @@ body{
     <button class="navbtn" data-scr="reports" onclick="goto('reports')"><span class="ic">📊</span>Reports</button>
     <button class="navbtn" data-scr="adcatalog" onclick="goto('adcatalog')"><span class="ic">🛍️</span>Ad Catalog</button>
     <button class="navbtn" data-scr="mads" onclick="goto('mads')"><span class="ic">📣</span>M-Ads</button>
+    <button class="navbtn" data-scr="labelmaker" onclick="goto('labelmaker')"><span class="ic">🏷️</span>Labels</button>
   </div>
 </div>
 
@@ -487,7 +488,7 @@ function render(){
   document.getElementById('backBtn').style.display = history.length>1 ? 'flex':'none';
   document.getElementById('settingsBtn').style.display = (cur.screen==='reports') ? 'flex':'none';
   document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active', b.dataset.scr===cur.screen));
-  const titles={dashboard:['Kavitha Telecom','Shop Manager'],products:['Products','Manage your stock'],billing:['Billing','Invoices & bills'],customers:['Customers','Udhar & contacts'],reports:['Reports','Sales & stock'],settings:['Settings','Shop & printer'],newbill:['New Bill','Create invoice'],invoicedetail:['Invoice','Details'],customerdetail:['Customer','Ledger'],purchases:['Purchases','Stock-in & suppliers'],newpurchase:['New Purchase','Add incoming stock'],purchasedetail:['Purchase','Details'],adcatalog:['Ad Catalog','Order catalog & orders'],mads:['M-Ads','Marketing brochures & ads']};
+  const titles={dashboard:['Kavitha Telecom','Shop Manager'],products:['Products','Manage your stock'],billing:['Billing','Invoices & bills'],customers:['Customers','Udhar & contacts'],reports:['Reports','Sales & stock'],settings:['Settings','Shop & printer'],newbill:['New Bill','Create invoice'],invoicedetail:['Invoice','Details'],customerdetail:['Customer','Ledger'],purchases:['Purchases','Stock-in & suppliers'],newpurchase:['New Purchase','Add incoming stock'],purchasedetail:['Purchase','Details'],adcatalog:['Ad Catalog','Order catalog & orders'],mads:['M-Ads','Marketing brochures & ads'],labelmaker:['Label Maker','Barcode & QR product labels']};
   const t=titles[cur.screen]||['Kavitha Telecom',''];
   document.getElementById('pageTitle').textContent=t[0];
   document.getElementById('pageSub').textContent=t[1];
@@ -506,6 +507,7 @@ function render(){
   else if(cur.screen==='purchasedetail')c.innerHTML=renderPurchaseDetail(cur.param);
   else if(cur.screen==='adcatalog'){c.innerHTML=renderAdCatalog(); ocInitScreen();}
   else if(cur.screen==='mads'){c.innerHTML=renderMads();}
+  else if(cur.screen==='labelmaker'){c.innerHTML=renderLabelMaker(); labelMakerInitScreen();}
   window.scrollTo(0,0);
 }
 
@@ -728,6 +730,394 @@ async function madsRemove(key){
   await saveSetting(key, '');
   toast('Removed');
   render();
+}
+
+/* ================= LABEL MAKER (Barcode & QR) ================= */
+const BARCODE_TOOL_HTML = `<!DOCTYPE html>
+<html lang="te">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>బార్‌కోడ్ లేబుల్ మేకర్</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+Telugu:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.12.1/JsBarcode.all.min.js"><\/script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script>
+<style>
+  :root{
+    --paper:#F6F2E8;
+    --ink:#211E19;
+    --line:#D8D0BC;
+    --accent:#B6402E;
+    --accent-ink:#FBF3EC;
+    --muted:#8A8273;
+    --card:#FFFFFF;
+    --label-w:70mm;
+    --label-h:40mm;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    background-image:radial-gradient(circle, rgba(33,30,25,0.07) 1px, transparent 1px);
+    background-size:16px 16px;
+    color:var(--ink);
+    font-family:'Noto Sans Telugu', system-ui, sans-serif;
+  }
+  .topbar{background:var(--ink); color:var(--paper);}
+  .topbar-inner{max-width:1300px; margin:0 auto; padding:20px 24px; display:flex; align-items:center; gap:14px;}
+  .brand-mark{font-size:28px; transform:rotate(-12deg); display:inline-block;}
+  .topbar h1{font-size:20px; margin:0 0 2px; letter-spacing:0.3px;}
+  .topbar p{margin:0; font-size:13px; color:#C9C2B2;}
+
+  .app{max-width:1300px; margin:0 auto; padding:24px; display:grid; grid-template-columns:320px 1fr; gap:22px; align-items:start;}
+  @media (max-width:880px){ .app{grid-template-columns:1fr;} }
+
+  .panel{background:var(--card); border:1px solid var(--line); border-radius:6px; padding:20px; position:sticky; top:24px;}
+  @media (max-width:880px){ .panel{position:static;} }
+  .panel h2{font-size:15px; margin:0 0 16px; text-transform:uppercase; letter-spacing:0.6px; color:var(--muted); font-weight:600;}
+
+  .field{margin-bottom:16px;}
+  .field label{display:block; font-size:12.5px; color:var(--muted); margin-bottom:5px;}
+  .field input, .field select{
+    width:100%; border:none; border-bottom:1.6px solid var(--line);
+    background:transparent; padding:7px 2px; font-size:15px; color:var(--ink);
+    font-family:inherit; outline:none;
+  }
+  .field input:focus{border-color:var(--accent);}
+
+  .seg{display:flex; border:1.6px solid var(--line); border-radius:5px; overflow:hidden;}
+  .seg-btn{flex:1; padding:8px 0; background:transparent; border:none; font-size:13px; cursor:pointer; color:var(--muted); font-family:inherit; font-weight:500;}
+  .seg-btn.active{background:var(--ink); color:var(--paper);}
+
+  .btn-primary, .btn-accent, .btn-ghost{
+    font-family:inherit; cursor:pointer; border-radius:5px; font-weight:600; font-size:14px;
+  }
+  .btn-primary{width:100%; padding:11px 0; background:var(--accent); color:var(--accent-ink); border:none; letter-spacing:0.2px;}
+  .btn-primary:hover{filter:brightness(1.07);}
+  .btn-ghost{background:transparent; border:1.4px solid var(--line); color:var(--muted); padding:9px 14px;}
+  .btn-ghost:hover{border-color:var(--accent); color:var(--accent);}
+  .btn-accent{background:var(--ink); color:var(--paper); border:none; padding:9px 16px;}
+  .btn-accent:hover{background:#000;}
+  #cancel-edit{width:100%; margin-top:8px;}
+
+  .sheet-wrap{min-width:0;}
+  .toolbar{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;}
+  .toolbar-left{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted);}
+  .toolbar-left select{border:1.4px solid var(--line); border-radius:5px; padding:6px 8px; background:var(--card); font-family:inherit;}
+  .toolbar-right{display:flex; align-items:center; gap:10px;}
+  .count{font-size:13px; color:var(--muted); font-family:'JetBrains Mono', monospace;}
+
+  .sheet{display:flex; flex-wrap:wrap; gap:6mm; background:transparent;}
+  .label{
+    width:var(--label-w); height:var(--label-h);
+    background:var(--card); border:1.4px dashed #B7AE96;
+    border-radius:3px; padding:3mm 3mm;
+    display:flex; flex-direction:column; align-items:center; justify-content:space-between;
+    text-align:center; position:relative; gap:1.5mm;
+  }
+  .label-name{font-size:10px; font-weight:600; line-height:1.2; max-height:2.2em; overflow:hidden; width:100%;}
+  .label-visuals{flex:1; display:flex; align-items:center; justify-content:center; width:100%; min-height:0; gap:3mm;}
+  .qr-box{flex:0 0 auto; height:100%; aspect-ratio:1/1; display:flex; align-items:center; justify-content:center; overflow:hidden;}
+  .qr-box img, .qr-box canvas, .qr-box table{width:100% !important; height:100% !important;}
+  .bc-box{flex:1 1 auto; height:62%; min-width:0;}
+  .bc-box svg{width:100% !important; height:100% !important;}
+  .label-foot{display:flex; align-items:baseline; justify-content:space-between; width:100%;}
+  .label-code{font-family:'JetBrains Mono', monospace; font-size:8.5px; color:var(--muted); letter-spacing:0.3px;}
+  .label-price{font-family:'JetBrains Mono', monospace; font-size:10.5px; font-weight:700; color:var(--accent);}
+  .label-error{font-size:9px; color:var(--accent);}
+
+  .label-list{margin-top:26px;}
+  .row{
+    display:flex; align-items:center; gap:12px; padding:10px 4px;
+    border-bottom:1px solid var(--line); font-size:13px;
+  }
+  .row .rn{flex:1; font-weight:600;}
+  .row .rc{font-family:'JetBrains Mono', monospace; color:var(--muted); font-size:12px;}
+  .row button{background:none; border:none; cursor:pointer; font-size:14px; color:var(--muted); padding:4px;}
+  .row button:hover{color:var(--accent);}
+
+  .empty{text-align:center; color:var(--muted); padding:50px 10px; font-size:14px; border:1.4px dashed var(--line); border-radius:6px;}
+
+  .hint{max-width:1300px; margin:0 auto; padding:6px 24px 30px; font-size:12.5px; color:var(--muted);}
+
+  @media print{
+    body{background:#fff;}
+    .topbar, .panel, .toolbar, .hint, .label-list, .empty{display:none !important;}
+    .app{display:block; padding:0;}
+    .sheet{gap:4mm;}
+    .label{border:1px dashed #999;}
+  }
+  @page{ size:A4; margin:10mm; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <span class="brand-mark">✂</span>
+    <div>
+      <h1>బార్‌కోడ్ లేబుల్ మేకర్</h1>
+      <p>ఉత్పత్తులకు బార్‌కోడ్ + QR కోడ్ ఒకే లేబుల్‌లో తయారు చేసి, ప్రింట్ చేసుకోండి</p>
+    </div>
+  </div>
+</header>
+
+<main class="app">
+  <section class="panel">
+    <h2 id="form-title">కొత్త లేబుల్ చేర్చండి</h2>
+    <form id="product-form">
+      <div class="field">
+        <label for="f-name">ఉత్పత్తి పేరు</label>
+        <input id="f-name" type="text" required placeholder="ఉదా: కాటన్ షర్ట్ M">
+      </div>
+      <div class="field">
+        <label for="f-code">కోడ్ / SKU</label>
+        <input id="f-code" type="text" placeholder="ఖాళీగా వదిలేస్తే ఆటోమేటిక్‌గా వస్తుంది">
+      </div>
+      <div class="field">
+        <label for="f-type">బార్‌కోడ్ టైప్</label>
+        <select id="f-type">
+          <option value="both">Barcode + QR కోడ్ రెండూ</option>
+          <option value="barcode">Barcode మాత్రమే</option>
+          <option value="qr">QR కోడ్ మాత్రమే</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="f-price">ధర (ఆప్షనల్, ₹)</label>
+        <input id="f-price" type="number" min="0" step="0.01" placeholder="ఉదా: 499">
+      </div>
+      <div class="field">
+        <label for="f-copies">కాపీలు (ఎన్ని ప్రింట్ చేయాలి)</label>
+        <input id="f-copies" type="number" min="1" max="60" value="1">
+      </div>
+      <button type="submit" class="btn-primary" id="submit-btn">+ జాబితాకు చేర్చు</button>
+      <button type="button" class="btn-ghost" id="cancel-edit" style="display:none;">రద్దు చేయి</button>
+    </form>
+  </section>
+
+  <section class="sheet-wrap">
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <label for="size-select">లేబుల్ సైజ్</label>
+        <select id="size-select">
+          <option value="40,20">చిన్నది 40×20mm</option>
+          <option value="50,30">మధ్యస్థం 50×30mm</option>
+          <option value="70,40" selected>పెద్దది 70×40mm</option>
+        </select>
+      </div>
+      <div class="toolbar-right">
+        <span class="count" id="count-label">0 లేబుల్స్</span>
+        <button class="btn-ghost" id="clear-all">అన్నీ తొలగించు</button>
+        <button class="btn-accent" id="print-btn">⎙ ప్రింట్ చేయి</button>
+      </div>
+    </div>
+
+    <div class="sheet" id="sheet"></div>
+    <p class="empty" id="empty-msg">ఇంకా ఏ లేబుల్ చేర్చలేదు. ఎడమవైపు ఫారమ్‌లో మొదటి ఉత్పత్తిని చేర్చండి.</p>
+
+    <div class="label-list" id="label-list"></div>
+  </section>
+</main>
+
+<p class="hint">💡 థర్మల్ లేబుల్ ప్రింటర్ ఉంటే, ప్రింట్ డైలాగ్‌లో సరైన పేపర్ సైజ్ & స్కేల్ 100% ఎంచుకోండి. డాష్‌డ్ లైన్స్ వెంట కత్తిరించుకోవచ్చు.</p>
+
+<script>
+(function(){
+  let products = [];
+  let editingId = null;
+  const STORAGE_KEY = 'barcode_label_products_v1';
+
+  const sheet = document.getElementById('sheet');
+  const emptyMsg = document.getElementById('empty-msg');
+  const labelList = document.getElementById('label-list');
+  const countLabel = document.getElementById('count-label');
+  const form = document.getElementById('product-form');
+  const submitBtn = document.getElementById('submit-btn');
+  const cancelBtn = document.getElementById('cancel-edit');
+  const formTitle = document.getElementById('form-title');
+
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+  function autoCode(){ return 'P' + Date.now().toString(36).toUpperCase(); }
+  function fmtPrice(p){ return Number.isInteger(p) ? String(p) : p.toFixed(2); }
+
+  async function loadProducts(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      products = raw ? JSON.parse(raw) : [];
+    }catch(e){
+      products = [];
+    }
+    render();
+  }
+  async function saveProducts(){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(products)); }
+    catch(e){ /* fails silently, data stays in-memory for this session */ }
+  }
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    const name = document.getElementById('f-name').value.trim();
+    let code = document.getElementById('f-code').value.trim();
+    const priceRaw = document.getElementById('f-price').value;
+    const copies = Math.max(1, Math.min(60, parseInt(document.getElementById('f-copies').value || '1', 10)));
+    const type = document.getElementById('f-type').value;
+    if(!name) return;
+    if(!code) code = autoCode();
+    const price = priceRaw === '' ? null : parseFloat(priceRaw);
+
+    if(editingId){
+      const p = products.find(x => x.id === editingId);
+      if(p){ p.name=name; p.code=code; p.price=price; p.copies=copies; p.type=type; }
+      editingId = null;
+      submitBtn.textContent = '+ జాబితాకు చేర్చు';
+      cancelBtn.style.display = 'none';
+      formTitle.textContent = 'కొత్త లేబుల్ చేర్చండి';
+    } else {
+      products.push({ id: uid(), name, code, price, copies, type });
+    }
+    form.reset();
+    document.getElementById('f-copies').value = 1;
+    saveProducts();
+    render();
+  });
+
+  cancelBtn.addEventListener('click', function(){
+    editingId = null;
+    form.reset();
+    document.getElementById('f-copies').value = 1;
+    submitBtn.textContent = '+ జాబితాకు చేర్చు';
+    cancelBtn.style.display = 'none';
+    formTitle.textContent = 'కొత్త లేబుల్ చేర్చండి';
+  });
+
+  document.getElementById('clear-all').addEventListener('click', function(){
+    if(products.length === 0) return;
+    if(confirm('అన్ని లేబుల్స్ తొలగించాలా?')){
+      products = [];
+      saveProducts();
+      render();
+    }
+  });
+
+  document.getElementById('print-btn').addEventListener('click', function(){
+    window.print();
+  });
+
+  document.getElementById('size-select').addEventListener('change', function(e){
+    const [w,h] = e.target.value.split(',');
+    document.documentElement.style.setProperty('--label-w', w + 'mm');
+    document.documentElement.style.setProperty('--label-h', h + 'mm');
+  });
+
+  function startEdit(id){
+    const p = products.find(x => x.id === id);
+    if(!p) return;
+    editingId = id;
+    document.getElementById('f-name').value = p.name;
+    document.getElementById('f-code').value = p.code;
+    document.getElementById('f-price').value = p.price === null ? '' : p.price;
+    document.getElementById('f-copies').value = p.copies;
+    document.getElementById('f-type').value = p.type || 'both';
+    submitBtn.textContent = '✓ నవీకరించు';
+    cancelBtn.style.display = 'block';
+    formTitle.textContent = 'లేబుల్ మార్చండి';
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  function deleteProduct(id){
+    products = products.filter(p => p.id !== id);
+    saveProducts();
+    render();
+    if(editingId === id) cancelBtn.click();
+  }
+
+  function render(){
+    sheet.innerHTML = '';
+    labelList.innerHTML = '';
+    const totalCopies = products.reduce((s,p) => s + p.copies, 0);
+    countLabel.textContent = totalCopies + ' లేబుల్స్';
+    emptyMsg.style.display = products.length === 0 ? 'block' : 'none';
+
+    products.forEach(function(p){
+      // management row
+      const row = document.createElement('div');
+      row.className = 'row';
+      row.innerHTML =
+        '<span class="rn"></span>' +
+        '<span class="rc"></span>' +
+        '<button data-act="edit">✎</button>' +
+        '<button data-act="del">🗑</button>';
+      row.querySelector('.rn').textContent = p.name + (p.copies > 1 ? ' ×' + p.copies : '');
+      row.querySelector('.rc').textContent = p.code;
+      row.querySelector('[data-act="edit"]').addEventListener('click', () => startEdit(p.id));
+      row.querySelector('[data-act="del"]').addEventListener('click', () => deleteProduct(p.id));
+      labelList.appendChild(row);
+
+      for(let i = 0; i < p.copies; i++){
+        const qrId = 'qr-' + p.id + '-' + i;
+        const bcId = 'bc-' + p.id + '-' + i;
+        const div = document.createElement('div');
+        div.className = 'label';
+        const showQR  = !p.type || p.type === 'both' || p.type === 'qr';
+        const showBC  = !p.type || p.type === 'both' || p.type === 'barcode';
+        const priceHtml = p.price !== null ? '<span class="label-price">₹' + fmtPrice(p.price) + '</span>' : '<span></span>';
+        div.innerHTML =
+          '<div class="label-name"></div>' +
+          '<div class="label-visuals">' +
+            (showQR ? '<div class="qr-box" id="'+qrId+'"></div>' : '') +
+            (showBC ? '<svg class="bc-box" id="'+bcId+'"></svg>' : '') +
+          '</div>' +
+          '<div class="label-foot"><span class="label-code"></span>' + priceHtml + '</div>';
+        div.querySelector('.label-name').textContent = p.name;
+        div.querySelector('.label-code').textContent = p.code;
+        sheet.appendChild(div);
+      }
+    });
+
+    // render visuals after DOM insertion
+    products.forEach(function(p){
+      for(let i = 0; i < p.copies; i++){
+        const qrId = 'qr-' + p.id + '-' + i;
+        const bcId = 'bc-' + p.id + '-' + i;
+        const qrEl = document.getElementById(qrId);
+        const bcEl = document.getElementById(bcId);
+        if(qrEl){
+          try{
+            qrEl.innerHTML = '';
+            new QRCode(qrEl, { text: p.code, width: 80, height: 80, correctLevel: QRCode.CorrectLevel.M });
+          }catch(err){
+            qrEl.innerHTML = '<span class="label-error">QR ఎర్రర్</span>';
+          }
+        }
+        if(bcEl){
+          try{
+            JsBarcode(bcEl, p.code, { format:'CODE128', width:1.6, height:38, displayValue:false, margin:0 });
+          }catch(err){
+            bcEl.outerHTML = '<span class="label-error">బార్‌కోడ్ ఎర్రర్</span>';
+          }
+        }
+      }
+    });
+  }
+
+  loadProducts();
+})();
+<\/script>
+
+</body>
+</html>
+`;
+function renderLabelMaker(){
+  return `
+  <div style="padding:0; margin:-16px; height:calc(100vh - 128px); background:#F6F2E8;">
+    <iframe id="labelMakerFrame" style="width:100%; height:100%; border:none; display:block;"></iframe>
+  </div>
+  `;
+}
+function labelMakerInitScreen(){
+  const frame = document.getElementById('labelMakerFrame');
+  if(frame) frame.srcdoc = BARCODE_TOOL_HTML;
 }
 
 /* ================= PRODUCTS ================= */
