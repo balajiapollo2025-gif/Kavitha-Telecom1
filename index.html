@@ -2856,6 +2856,18 @@ function renderAdCatalog(){
     <input type="text" id="scriptUrl" placeholder="https://script.google.com/macros/s/xxxx/exec">
     <label>WhatsApp Order Number (fallback, with country code)</label>
     <input type="text" id="waNumber" placeholder="91XXXXXXXXXX">
+
+    <div style="margin-top:14px; padding-top:12px; border-top:1px dashed #ccc;">
+      <label>🔊 New Order Alert Sound</label>
+      <div id="alertSoundInfo" style="font-size:12px; color:#666; margin:4px 0 8px;">Using the default beep sound.</div>
+      <input type="file" id="alertSoundInput" accept="audio/*" style="display:none" onchange="oc_uploadAlertSound(event)">
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="save" style="background:#5b2170;color:#fff;" onclick="document.getElementById('alertSoundInput').click()">📤 Upload Sound</button>
+        <button class="save" style="background:#2b8a3e;color:#fff;" onclick="oc_beep()">▶️ Test</button>
+        <button class="close" onclick="oc_resetAlertSound()">↩️ Reset to Default</button>
+      </div>
+    </div>
+
     <div class="status-ok" id="savedMsg">✅ Saved!</div>
     <div class="row">
       <button class="close" onclick="oc_closeSettings()">Close</button>
@@ -3263,6 +3275,7 @@ function oc_toggleOfferMode(){
 function oc_openSettings(){
   document.getElementById('scriptUrl').value = oc_CONFIG.scriptUrl;
   document.getElementById('waNumber').value = oc_CONFIG.waNumber;
+  document.getElementById('alertSoundInfo').innerText = SETTINGS.oc_alertSound ? '✅ A custom alert sound is set.' : 'Using the default beep sound.';
   document.getElementById('settingsModal').classList.add('open');
 }
 function oc_closeSettings(){ document.getElementById('settingsModal').classList.remove('open'); }
@@ -3408,6 +3421,17 @@ let oc_LAST_TOP_ORDER_ID = null;
 let oc_FIRST_LOAD_DONE = false;
 
 function oc_beep(){
+  const custom = SETTINGS.oc_alertSound;
+  if(custom){
+    try{
+      const audio = new Audio(custom);
+      audio.play().catch(()=>{ oc_beepDefault(); });
+      return;
+    }catch(e){ /* fall through to default beep */ }
+  }
+  oc_beepDefault();
+}
+function oc_beepDefault(){
   try{
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     const now = ctx.currentTime;
@@ -3423,6 +3447,28 @@ function oc_beep(){
       osc.start(now+off); osc.stop(now+off+0.3);
     });
   }catch(e){}
+}
+async function oc_uploadAlertSound(evt){
+  const file = evt.target.files[0]; if(!file) return;
+  if(file.size > 5*1024*1024){ toast('Audio file is too large (must be under 5MB)'); return; }
+  try{
+    const dataUrl = await new Promise((resolve,reject)=>{
+      const reader = new FileReader();
+      reader.onload = ()=>resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+    await saveSetting('oc_alertSound', dataUrl);
+    document.getElementById('alertSoundInfo').innerText = '✅ Custom sound set: ' + file.name;
+    toast('Alert sound updated ✓');
+    oc_beep();
+  }catch(e){ toast('Upload failed, please try again'); }
+  evt.target.value = '';
+}
+async function oc_resetAlertSound(){
+  await saveSetting('oc_alertSound', '');
+  document.getElementById('alertSoundInfo').innerText = 'Using the default beep sound.';
+  toast('Reset to default beep');
 }
 
 function oc_enableAlerts(){
